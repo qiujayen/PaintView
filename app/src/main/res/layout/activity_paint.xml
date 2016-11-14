@@ -49,7 +49,7 @@
                 android:layout_height="match_parent"
                 android:layout_weight="1"
                 android:background="@drawable/selector_btn_bg"
-                android:src="@drawable/ic_undo"/>
+                android:src="@drawable/selector_undo"/>
         </LinearLayout>
         <LinearLayout
             android:id="@+id/layout_text"

@@ -62,7 +62,7 @@ public class PaintActivity extends AppCompatActivity
         mBtnText = (ImageButton)findViewById(R.id.btn_text);
         mBtnText.setOnClickListener(this);
         mBtnUndo = (ImageButton)findViewById(R.id.btn_undo);
-        mBtnUndo.setImageAlpha(0x77);
+        mBtnUndo.setEnabled(false);
         mBtnUndo.setOnClickListener(this);
 
         mLayoutText = findViewById(R.id.layout_text);
@@ -178,11 +178,9 @@ public class PaintActivity extends AppCompatActivity
     @Override
     public void afterDraw(ArrayList<DrawShape> mDrawShapes) {
         if (mDrawShapes.size() == 0) {
-            mBtnUndo.setImageAlpha(0x77);
             mBtnUndo.setEnabled(false);
         }
         else {
-            mBtnUndo.setImageAlpha(0xFF);
             mBtnUndo.setEnabled(true);
         }
     }
