@@ -136,6 +136,7 @@ public class PaintView extends View {
         mPaintList.add(paint);
 
         StrokePaint textPaint = new StrokePaint(paint);
+        textPaint.setStyle(Paint.Style.FILL);
         mTextPaintList.add(textPaint);
 
         mTextRectPaint = new StrokePaint(paint);
