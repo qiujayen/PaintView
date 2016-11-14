@@ -36,8 +36,6 @@ public class PaintView extends View {
         mOnDrawListener = onDrawListener;
     }
 
-    private static final float SCALE_MAX = 2f, SCALE_MIN = 0.5f;
-
     //View Size
     //View尺寸
     private boolean bInited = false;
@@ -86,6 +84,9 @@ public class PaintView extends View {
         NONE, DRAG, ZOOM
     }
     private MODE mode = MODE.NONE;
+
+    private float mScaleMax = 2f, mScaleMin = 0.5f;
+
     private boolean bDragEnable = true;
 
     //Center Point of Two Fingers
@@ -167,18 +168,28 @@ public class PaintView extends View {
     /**
      * Text painting start
      * 开始绘制文字
+     * @param x coordinate of bottom left corner
+     * @param y 左下角坐标
      */
-    public void startText() {
+    public void startText(float x, float y) {
         bTextDrawing = true;
         mCurrentText = new DrawText(getCurrentTextPaint());
         //文字初始坐标位于view中心
-        mCurrentText.setCoordinate(mWidth / 2, mHeight / 2);
+        mCurrentText.setCoordinate(x, y);
 
         mCurrentTextRect = new DrawRect(mCurrentText.getTextRect(), mTextRectPaint);
 
         mDrawShapes.add(mCurrentText);
         mDrawShapes.add(mCurrentTextRect);
         invalidate();
+    }
+
+    /**
+     * Text painting start at screen center point
+     * 于屏幕重心开始绘制文字
+     */
+    public void startText() {
+        startText(mWidth / 2, mHeight / 2);
     }
 
     /**
@@ -201,6 +212,22 @@ public class PaintView extends View {
         bTextDrawing = false;
         //删除文字边框
         undo();
+    }
+
+    /**
+     * 设置缩放上限，默认为2
+     * @param scaleMax
+     */
+    public void setScaleMax(float scaleMax) {
+        this.mScaleMax = scaleMax;
+    }
+
+    /**
+     * 设置缩放下限，默认为0.5
+     * @param scaleMin
+     */
+    public void setScaleMin(float scaleMin) {
+        this.mScaleMin = scaleMin;
     }
 
     /**
@@ -508,7 +535,7 @@ public class PaintView extends View {
 
             //放大缩小临界值判断
             float toScale = mMainMatrixValues[Matrix.MSCALE_X] * mCurrentScale;
-            if (toScale > SCALE_MAX || toScale < SCALE_MIN) {
+            if (toScale > mScaleMax || toScale < mScaleMin) {
                 mCurrentScale = 1;
             }
         }

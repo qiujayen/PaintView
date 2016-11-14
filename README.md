@@ -1,33 +1,59 @@
 # PaintView
 
-涂鸦控件，点击下方ICON下载Demo。
+[中文README](res/README_CN.md)
+
+[![Library Release](https://img.shields.io/badge/release-v1.1-green.svg)](https://github.com/LiuHongtao/PaintView)
+[![MIT License](http://img.shields.io/:license-MIT-blue.svg)](https://github.com/LiuHongtao/PaintView/blob/master/LICENSE)
+[![Android API](https://img.shields.io/badge/Android_API-9%2B-brightgreen.svg?style=flat)](https://android-arsenal.com/api?level=9)
+
+
+PaintView aims to painting on image(or not) with zooming and graging surpported, and the painting result can be shared.
+
+Click the icon to download demo apk.
 
 [![ICON](res/ic_launcher.png)](res/paintview_demo.apk)
 
-截图如下
+## Gradle Dependency
+
+Add this in your root build.gradle file (not your module build.gradle file):
+
+	allprojects {
+	    repositories {
+	        ...
+	        jcenter()
+	    }
+	}
+
+Then, add the library to your module build.gradle:
+
+	dependencies {
+	    compile 'com.lht:paintview:{latest.release.version}'
+	}
+
+## Screenshot & Feature
 
 ![screenshot](res/screenshot.png)
 
-## Version
-
 ### 1.1
 
-* 文字
-* 放大缩小手势
+* Adding Text
+* Zooming and Draging
 
 ### 1.0
 
-* 设置背景图
-* 设置画笔颜色、宽度
-* 撤销
-* 获取涂鸦后Bitmap
+* Background Image Setting
+* Setting Color and Width of Stroke
+* Undo
+* Getting Painting Result
 
 ## TODO
 
-* 橡皮擦
+* Eraser
+* Comment and Translation
 
-## Demo
+## Demo Description
 
-* 从网页截图作为背景图
-* 涂鸦后分享
-* 截图后Bitmap理论上可以通过Intent传递，但图片过大会导致崩溃，因此Demo中使用文件存储传递
+* Set web screenshot as background image to paint
+* Share after painting
+* The web screenshot bitmap can be 
+transferred by Intent, but it will crash if the bitmap is too big, so the Demo transfer bitmap by saving it as a file.

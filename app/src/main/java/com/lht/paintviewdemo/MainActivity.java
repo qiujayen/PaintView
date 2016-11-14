@@ -1,6 +1,10 @@
 package com.lht.paintviewdemo;
 
+import android.Manifest;
+import android.content.pm.PackageManager;
 import android.os.Bundle;
+import android.support.v4.app.ActivityCompat;
+import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.view.KeyEvent;
 import android.view.Menu;
@@ -13,6 +17,8 @@ import android.widget.ProgressBar;
 import com.lht.paintviewdemo.view.CustomWebView;
 
 public class MainActivity extends AppCompatActivity {
+
+    final static int WRITE_EXTERNAL_STORAGE_REQUEST_CODE = 0;
 
     CustomWebView mWebView;
     ProgressBar mProgressBar;
@@ -62,9 +68,33 @@ public class MainActivity extends AppCompatActivity {
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
             case R.id.action_share:
-                PaintActivity.start(this, mWebView.captureWebViewVisibleSize(1f));
+                if (ContextCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE)
+                        != PackageManager.PERMISSION_GRANTED) {
+                    ActivityCompat.requestPermissions(this,
+                            new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE},
+                            WRITE_EXTERNAL_STORAGE_REQUEST_CODE);
+                }
+                else {
+                    PaintActivity.start(this, mWebView.captureWebViewVisibleSize(1f));
+                }
                 break;
         }
         return true;
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        doNext(requestCode,grantResults);
+    }
+
+    private void doNext(int requestCode, int[] grantResults) {
+        if (requestCode == WRITE_EXTERNAL_STORAGE_REQUEST_CODE) {
+            if (grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                PaintActivity.start(this, mWebView.captureWebViewVisibleSize(1f));
+            } else {
+                // Permission Denied
+            }
+        }
     }
 }
