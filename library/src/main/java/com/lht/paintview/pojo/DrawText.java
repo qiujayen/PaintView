@@ -23,7 +23,7 @@ public class DrawText extends DrawShape {
 
     public DrawText(StrokePaint paint) {
         this.paint = paint;
-        dx = TEXT_RECT_PADDING;
+        dx = TEXT_RECT_PADDING * paint.getScale();
         dy = paint.getActualTextSize() / 2;
     }
 
@@ -43,10 +43,10 @@ public class DrawText extends DrawShape {
      */
     public Rect getTextRect() {
         paint.getTextBounds(text, 0, text.length(), rect);
-        rect.set((int)x - TEXT_RECT_PADDING,
-                (int)(y - paint.getActualTextSize() - TEXT_RECT_PADDING),
-                (int)(x + rect.width() + TEXT_RECT_PADDING),
-                (int)y + TEXT_RECT_PADDING);
+        rect.set((int)(x - TEXT_RECT_PADDING * paint.getScale()),
+                (int)(y - paint.getActualTextSize() - TEXT_RECT_PADDING * paint.getScale()),
+                (int)(x + rect.width() + TEXT_RECT_PADDING * paint.getScale()),
+                (int)(y + TEXT_RECT_PADDING * paint.getScale()));
         return rect;
     }
 

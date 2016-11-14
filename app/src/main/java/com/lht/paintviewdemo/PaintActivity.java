@@ -8,6 +8,7 @@ import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.text.Editable;
 import android.text.TextWatcher;
+import android.view.KeyEvent;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -92,6 +93,8 @@ public class PaintActivity extends AppCompatActivity
             case R.id.btn_text:
                 mPaintView.startText();
                 mEtText.setText("");
+                mEtText.requestFocus();
+                KeyboardUtil.showkeyboard(mEtText);
                 mLayoutText.setVisibility(View.VISIBLE);
                 mLayoutAction.setVisibility(View.GONE);
                 break;
@@ -99,12 +102,25 @@ public class PaintActivity extends AppCompatActivity
                 mPaintView.undo();
                 break;
             case R.id.btn_submit:
-                mPaintView.endText();
-                KeyboardUtil.hidekeyboard(mEtText);
-                mLayoutAction.setVisibility(View.VISIBLE);
-                mLayoutText.setVisibility(View.GONE);
+                endText();
                 break;
         }
+    }
+
+    @Override
+    public boolean onKeyDown(int keyCode, KeyEvent event) {
+        if (keyCode == KeyEvent.KEYCODE_BACK && mLayoutText.getVisibility() == View.VISIBLE) {
+            endText();
+            return true;
+        }
+        return super.onKeyDown(keyCode, event);
+    }
+
+    private void endText() {
+        mPaintView.endText();
+        KeyboardUtil.hidekeyboard(mEtText);
+        mLayoutAction.setVisibility(View.VISIBLE);
+        mLayoutText.setVisibility(View.GONE);
     }
 
     @Override
