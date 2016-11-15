@@ -85,9 +85,9 @@ public class PaintView extends View {
     }
     private MODE mode = MODE.NONE;
 
-    private float mScaleMax = 2f, mScaleMin = 0.5f;
-
+    private boolean bGestureEnable = true;
     private boolean bDragEnable = true;
+    private float mScaleMax = 2f, mScaleMin = 0.5f;
 
     //Center Point of Two Fingers
     //当次两指中心点
@@ -213,6 +213,18 @@ public class PaintView extends View {
         bTextDrawing = false;
         //删除文字边框
         undo();
+    }
+
+    public boolean isGestureEnable() {
+        return bGestureEnable;
+    }
+
+    /**
+     * 设置手势是否可用
+     * @param gestureEnable
+     */
+    public void setGestureEnable(boolean gestureEnable) {
+        this.bGestureEnable = gestureEnable;
     }
 
     /**
@@ -393,7 +405,7 @@ public class PaintView extends View {
         switch (event.getAction() & MotionEvent.ACTION_MASK) {
             //文字不在输入时，多点按下
             case MotionEvent.ACTION_POINTER_DOWN:
-                if (!bTextDrawing) {
+                if (!bTextDrawing && bGestureEnable) {
                     doubleFingerDown(event);
                 }
                 break;
@@ -408,7 +420,7 @@ public class PaintView extends View {
                     touchMove(x, y);
                 }
                 //文字不在输入时，多点移动
-                else if (event.getPointerCount() == DOUBLE_FINGER && !bTextDrawing) {
+                else if (event.getPointerCount() == DOUBLE_FINGER && !bTextDrawing && bGestureEnable) {
                     doubleFingerMove(event);
                 }
                 break;
