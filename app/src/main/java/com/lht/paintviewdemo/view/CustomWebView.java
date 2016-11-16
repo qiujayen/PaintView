@@ -39,7 +39,7 @@ public class CustomWebView extends WebView {
      * @return
      */
     public Bitmap captureWebViewVisibleSize(float scale) {
-        setDrawingCacheQuality(View.DRAWING_CACHE_QUALITY_LOW);
+        setDrawingCacheQuality(View.DRAWING_CACHE_QUALITY_AUTO);
         setDrawingCacheEnabled(true);
         buildDrawingCache();
 

@@ -29,7 +29,7 @@ public class PaintView extends View {
     private OnDrawListener mOnDrawListener;
 
     public interface OnDrawListener {
-        void afterDraw(ArrayList<DrawShape> mDrawShapes);
+        void afterDraw(ArrayList<DrawShape> drawShapes);
     }
 
     public void setOnDrawListener(OnDrawListener onDrawListener) {
@@ -72,8 +72,8 @@ public class PaintView extends View {
     //当前绘制路径
     private Path mCurrentPath;
 
-    //Shape List(Path and Point)
-    //绘制列表(线和点）
+    //Shape List(Path, Point and Text)
+    //绘制列表(线、点和文字）
     private ArrayList<DrawShape> mDrawShapes = new ArrayList<>();
     private boolean bPathDrawing = false;
 
@@ -160,10 +160,22 @@ public class PaintView extends View {
     protected void onDraw(Canvas canvas) {
         super.onDraw(canvas);
         canvas.drawColor(mBgColor);
-        canvas.drawBitmap(mBgBitmap, mMainMatrix, mBgPaint);
+
+        if (mBgBitmap != null) {
+            canvas.drawBitmap(mBgBitmap, mMainMatrix, mBgPaint);
+        }
+
         for (DrawShape shape : mDrawShapes) {
             shape.draw(canvas, mCurrentMatrix);
         }
+    }
+
+    public ArrayList<DrawShape> getDrawShapes() {
+        return mDrawShapes;
+    }
+
+    public void setDrawShapes(ArrayList<DrawShape> mDrawShapes) {
+        this.mDrawShapes = mDrawShapes;
     }
 
     /**
@@ -335,6 +347,10 @@ public class PaintView extends View {
     }
 
     private void resizeBgBitmap() {
+        if (mBgBitmap == null) {
+            return;
+        }
+
         if (mBgBitmap.getWidth() > mWidth || mBgBitmap.getHeight() > mHeight) {
             mBgBitmap = zoomImg(mBgBitmap, mWidth, mHeight);
         }

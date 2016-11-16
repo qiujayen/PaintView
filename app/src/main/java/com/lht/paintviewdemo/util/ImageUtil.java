@@ -21,7 +21,7 @@ import java.io.InputStream;
  */
 
 public class ImageUtil {
-    public static boolean saveBitmap(Bitmap bitmap, String path, boolean recyle) {
+    private static boolean saveBitmap(Bitmap bitmap, String path, boolean recyle) {
         if (bitmap == null || TextUtils.isEmpty(path)) {
             return false;
         }

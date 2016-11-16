@@ -5,6 +5,7 @@ import android.content.Intent;
 import android.graphics.Bitmap;
 import android.net.Uri;
 import android.os.Bundle;
+import android.support.annotation.Nullable;
 import android.support.v7.app.AppCompatActivity;
 import android.text.Editable;
 import android.text.TextWatcher;
@@ -24,6 +25,8 @@ import java.util.ArrayList;
 
 public class PaintActivity extends AppCompatActivity
         implements View.OnClickListener, TextWatcher, PaintView.OnDrawListener {
+
+    final static String DRAW_SHAPES = "draw_shapes";
 
     final static int WIDTH_WRITE = 2, WIDTH_PAINT = 40;
     final static int COLOR_RED = 0xffff4141, COLOR_BLUE = 0xff41c6ff;
@@ -69,9 +72,40 @@ public class PaintActivity extends AppCompatActivity
         mLayoutText = findViewById(R.id.layout_text);
 
         mEtText = (EditText)findViewById(R.id.et_text);
-        mEtText.addTextChangedListener(this);
         mBtnSubmit = (ImageButton)findViewById(R.id.btn_submit);
         mBtnSubmit.setOnClickListener(this);
+    }
+
+    @Override
+    protected void onSaveInstanceState(Bundle outState) {
+        outState.putSerializable(DRAW_SHAPES, mPaintView.getDrawShapes());
+        super.onSaveInstanceState(outState);
+    }
+
+    @Override
+    protected void onRestoreInstanceState(Bundle savedInstanceState) {
+        super.onRestoreInstanceState(savedInstanceState);
+        ArrayList<DrawShape> drawShapes =
+                (ArrayList<DrawShape>)savedInstanceState.getSerializable(DRAW_SHAPES);
+        mPaintView.setDrawShapes(drawShapes);
+        setUndoEnable(drawShapes);
+    }
+
+    /**
+     * The afterTextChanged method was called, each time, the device orientation changed.
+     *
+     * Android recreates the activity,
+     * and the automatic restoration of the state of the input fields,
+     * is happening after onCreate had finished,
+     * where the TextWatcher was added as a TextChangedListener.
+     *
+     * The solution to the problem consisted in adding the TextWatcher in onPostCreate,
+     * which is called after restoration has taken place.
+     */
+    @Override
+    protected void onPostCreate(@Nullable Bundle savedInstanceState) {
+        super.onPostCreate(savedInstanceState);
+        mEtText.addTextChangedListener(this);
     }
 
     public static void start(Context context, Bitmap bitmap) {
@@ -192,8 +226,12 @@ public class PaintActivity extends AppCompatActivity
     }
 
     @Override
-    public void afterDraw(ArrayList<DrawShape> mDrawShapes) {
-        if (mDrawShapes.size() == 0) {
+    public void afterDraw(ArrayList<DrawShape> drawShapes) {
+        setUndoEnable(drawShapes);
+    }
+
+    private void setUndoEnable(ArrayList<DrawShape> drawShapes) {
+        if (drawShapes.size() == 0) {
             mBtnUndo.setEnabled(false);
         }
         else {
