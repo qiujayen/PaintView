@@ -2,7 +2,7 @@
 
 [中文README](res/README_CN.md)
 
-[![Library Release](https://img.shields.io/badge/release-v1.1.2-green.svg)](https://github.com/LiuHongtao/PaintView)
+[![Library Release](https://img.shields.io/badge/release-v1.1.3-green.svg)](https://github.com/LiuHongtao/PaintView)
 [![MIT License](http://img.shields.io/:license-MIT-blue.svg)](https://github.com/LiuHongtao/PaintView/blob/master/LICENSE)
 [![Android API](https://img.shields.io/badge/Android_API-9%2B-brightgreen.svg?style=flat)](https://android-arsenal.com/api?level=9)
 
@@ -34,6 +34,10 @@ Then, add the library to your module build.gradle:
 
 ![screenshot](res/screenshot.png)
 
+### 1.1.3
+
+* Bug Fixed
+
 ### 1.1
 
 * Adding Text
@@ -49,6 +53,7 @@ Then, add the library to your module build.gradle:
 ## TODO
 
 * Eraser
+* Canvas Rotation
 * Comment and Translation
 
 ## Demo Description
