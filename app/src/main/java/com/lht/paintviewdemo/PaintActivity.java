@@ -2,6 +2,8 @@ package com.lht.paintviewdemo;
 
 import android.content.Context;
 import android.content.Intent;
+import android.content.pm.ActivityInfo;
+import android.content.res.Configuration;
 import android.graphics.Bitmap;
 import android.net.Uri;
 import android.os.Bundle;
@@ -26,6 +28,8 @@ import java.util.ArrayList;
 public class PaintActivity extends AppCompatActivity
         implements View.OnClickListener, TextWatcher, PaintView.OnDrawListener {
 
+    final static String SCREEN_ORIENTATION = "screen_orientation";
+    final static String BITMAP_URI = "bitmap_uri";
     final static String DRAW_SHAPES = "draw_shapes";
 
     final static int WIDTH_WRITE = 2, WIDTH_PAINT = 40;
@@ -45,13 +49,21 @@ public class PaintActivity extends AppCompatActivity
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_paint);
 
+        int screenOrientation = getIntent().getIntExtra(SCREEN_ORIENTATION, -1);
+        if (screenOrientation == Configuration.ORIENTATION_LANDSCAPE) {
+            setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
+        }
+        else if (screenOrientation == Configuration.ORIENTATION_PORTRAIT) {
+            setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
+        }
+
         mPaintView = (PaintView)findViewById(R.id.view_paint);
         mPaintView.setColor(COLOR_RED);
         mPaintView.setTextColor(COLOR_RED);
         mPaintView.setStrokeWidth(WIDTH_WRITE);
         mPaintView.setOnDrawListener(this);
 
-        Uri uri = getIntent().getParcelableExtra("bitmap_uri");
+        Uri uri = getIntent().getParcelableExtra(BITMAP_URI);
         Bitmap bitmap = ImageUtil.getBitmapByUri(this, uri);
         if (bitmap != null) {
             mPaintView.setBitmap(bitmap);
@@ -108,10 +120,11 @@ public class PaintActivity extends AppCompatActivity
         mEtText.addTextChangedListener(this);
     }
 
-    public static void start(Context context, Bitmap bitmap) {
+    public static void start(Context context, Bitmap bitmap, int screenOrientation) {
         Intent intent = new Intent();
         intent.setClass(context, PaintActivity.class);
-        intent.putExtra("bitmap_uri", ImageUtil.saveShareImage(context, bitmap));
+        intent.putExtra(SCREEN_ORIENTATION, screenOrientation);
+        intent.putExtra(BITMAP_URI, ImageUtil.saveShareImage(context, bitmap));
         context.startActivity(intent);
     }
 

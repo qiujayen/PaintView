@@ -75,7 +75,8 @@ public class MainActivity extends AppCompatActivity {
                             WRITE_EXTERNAL_STORAGE_REQUEST_CODE);
                 }
                 else {
-                    PaintActivity.start(this, mWebView.captureWebViewVisibleSize(1f));
+                    PaintActivity.start(this, mWebView.captureWebViewVisibleSize(1f),
+                            getResources().getConfiguration().orientation);
                 }
                 break;
         }
@@ -91,7 +92,8 @@ public class MainActivity extends AppCompatActivity {
     private void doNext(int requestCode, int[] grantResults) {
         if (requestCode == WRITE_EXTERNAL_STORAGE_REQUEST_CODE) {
             if (grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                PaintActivity.start(this, mWebView.captureWebViewVisibleSize(1f));
+                PaintActivity.start(this, mWebView.captureWebViewVisibleSize(1f),
+                        getResources().getConfiguration().orientation);
             } else {
                 // Permission Denied
             }
