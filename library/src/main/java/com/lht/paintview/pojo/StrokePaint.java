@@ -2,11 +2,13 @@ package com.lht.paintview.pojo;
 
 import android.graphics.Paint;
 
+import java.io.Serializable;
+
 /**
  * Created by lht on 16/11/10.
  */
 
-public class StrokePaint extends Paint {
+public class StrokePaint extends Paint implements Serializable {
 
     //scale
     //缩放

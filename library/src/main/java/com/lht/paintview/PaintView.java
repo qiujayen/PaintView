@@ -278,7 +278,7 @@ public class PaintView extends View {
      * 设置背景颜色
      * @param color 0xaarrggbb
      */
-    public void setBgColor(int color) {
+    public void setBackgroundColor(int color) {
         mBgColor = color;
     }
 
@@ -332,9 +332,31 @@ public class PaintView extends View {
      * 获取绘制结果图
      * @return paint result 绘制结果图
      */
-    public Bitmap getBitmap() {
-        destroyDrawingCache();
-        return getDrawingCache();
+    public Bitmap getBitmap(boolean isViewOnly) {
+        Bitmap result;
+        if (isViewOnly) {
+            destroyDrawingCache();
+            result = getDrawingCache();
+        }
+        else {
+            result = Bitmap.createBitmap(mWidth, mHeight, Bitmap.Config.ARGB_8888);
+            Matrix matrix = new Matrix();
+            Canvas canvas = new Canvas();
+            canvas.setBitmap(result);
+
+            canvas.drawColor(mBgColor);
+
+            setImgPosition(matrix);
+            if (mBgBitmap != null) {
+                canvas.drawBitmap(mBgBitmap, matrix, mBgPaint);
+            }
+
+            mMainMatrix.invert(matrix);
+            for (DrawShape shape : mDrawShapes) {
+                shape.clone(1).draw(canvas, matrix);
+            }
+        }
+        return result;
     }
 
     /**
@@ -355,18 +377,7 @@ public class PaintView extends View {
             mBgBitmap = zoomImg(mBgBitmap, mWidth, mHeight);
         }
 
-        float left = (mWidth - mBgBitmap.getWidth()) / 2;
-        float top = (mHeight - mBgBitmap.getHeight()) / 2;
-        //缩放后
-        if (mBgBitmap.getWidth() < mWidth && mBgBitmap.getHeight() < mHeight) {
-            mMainMatrix.setTranslate(left, top);
-        }
-        else if (mBgBitmap.getWidth() < mWidth) {
-            mMainMatrix.setTranslate(left, 0);
-        }
-        else if (mBgBitmap.getHeight() < mHeight) {
-            mMainMatrix.setTranslate(0, top);
-        }
+        setImgPosition(mMainMatrix);
     }
 
     private Bitmap zoomImg(Bitmap bm, int newWidth , int newHeight){
@@ -384,6 +395,21 @@ public class PaintView extends View {
         matrix.postScale(scale, scale);
         // 得到新的图片
         return Bitmap.createBitmap(bm, 0, 0, width, height, matrix, true);
+    }
+
+    private void setImgPosition(Matrix matrix) {
+        float left = (mWidth - mBgBitmap.getWidth()) / 2;
+        float top = (mHeight - mBgBitmap.getHeight()) / 2;
+        //缩放后
+        if (mBgBitmap.getWidth() < mWidth && mBgBitmap.getHeight() < mHeight) {
+            matrix.setTranslate(left, top);
+        }
+        else if (mBgBitmap.getWidth() < mWidth) {
+            matrix.setTranslate(left, 0);
+        }
+        else if (mBgBitmap.getHeight() < mHeight) {
+            matrix.setTranslate(0, top);
+        }
     }
 
     /**

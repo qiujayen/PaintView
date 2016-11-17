@@ -5,6 +5,7 @@ import android.content.Intent;
 import android.content.pm.ActivityInfo;
 import android.content.res.Configuration;
 import android.graphics.Bitmap;
+import android.graphics.Color;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
@@ -60,6 +61,7 @@ public class PaintActivity extends AppCompatActivity
         mPaintView = (PaintView)findViewById(R.id.view_paint);
         mPaintView.setColor(COLOR_RED);
         mPaintView.setTextColor(COLOR_RED);
+        mPaintView.setBackgroundColor(Color.WHITE);
         mPaintView.setStrokeWidth(WIDTH_WRITE);
         mPaintView.setOnDrawListener(this);
 
@@ -88,20 +90,20 @@ public class PaintActivity extends AppCompatActivity
         mBtnSubmit.setOnClickListener(this);
     }
 
-    @Override
-    protected void onSaveInstanceState(Bundle outState) {
-        outState.putSerializable(DRAW_SHAPES, mPaintView.getDrawShapes());
-        super.onSaveInstanceState(outState);
-    }
-
-    @Override
-    protected void onRestoreInstanceState(Bundle savedInstanceState) {
-        super.onRestoreInstanceState(savedInstanceState);
-        ArrayList<DrawShape> drawShapes =
-                (ArrayList<DrawShape>)savedInstanceState.getSerializable(DRAW_SHAPES);
-        mPaintView.setDrawShapes(drawShapes);
-        setUndoEnable(drawShapes);
-    }
+//    @Override
+//    protected void onSaveInstanceState(Bundle outState) {
+//        outState.putSerializable(DRAW_SHAPES, mPaintView.getDrawShapes());
+//        super.onSaveInstanceState(outState);
+//    }
+//
+//    @Override
+//    protected void onRestoreInstanceState(Bundle savedInstanceState) {
+//        super.onRestoreInstanceState(savedInstanceState);
+//        ArrayList<DrawShape> drawShapes =
+//                (ArrayList<DrawShape>)savedInstanceState.getSerializable(DRAW_SHAPES);
+//        mPaintView.setDrawShapes(drawShapes);
+//        setUndoEnable(drawShapes);
+//    }
 
     /**
      * The afterTextChanged method was called, each time, the device orientation changed.
@@ -222,7 +224,7 @@ public class PaintActivity extends AppCompatActivity
         switch (item.getItemId()) {
             case R.id.action_share:
                 shareSingleImage(
-                        ImageUtil.saveShareImage(this, mPaintView.getBitmap()));
+                        ImageUtil.saveShareImage(this, mPaintView.getBitmap(true)));
                 break;
         }
         return true;

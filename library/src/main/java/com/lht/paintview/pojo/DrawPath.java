@@ -24,4 +24,12 @@ public class DrawPath extends DrawShape {
 
         canvas.drawPath(path, paint.setStrokeWidth());
     }
+
+    @Override
+    public DrawShape clone(float scale) {
+        StrokePaint clonePaint = new StrokePaint(paint);
+        clonePaint.setScale(scale);
+
+        return new DrawPath(new Path(path), clonePaint);
+    }
 }

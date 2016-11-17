@@ -14,4 +14,6 @@ public abstract class DrawShape implements Serializable {
     StrokePaint paint;
 
     public abstract void draw(Canvas canvas, Matrix matrix);
+
+    public abstract DrawShape clone(float scale);
 }

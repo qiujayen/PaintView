@@ -77,4 +77,19 @@ public class DrawText extends DrawShape {
 
         canvas.drawText(text, x, y, paint.setStrokeWidth());
     }
+
+    @Override
+    public DrawShape clone(float scale) {
+        StrokePaint clonePaint = new StrokePaint(paint);
+        clonePaint.setScale(scale);
+
+        DrawText cloneText = new DrawText(clonePaint);
+        cloneText.x = x;
+        cloneText.y = y;
+        cloneText.text = text;
+        cloneText.dx = dx;
+        cloneText.dy = dy;
+
+        return cloneText;
+    }
 }

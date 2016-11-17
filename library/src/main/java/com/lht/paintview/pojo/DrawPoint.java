@@ -27,4 +27,12 @@ public class DrawPoint extends DrawShape {
 
         canvas.drawPoint(x, y, paint.setStrokeWidth());
     }
+
+    @Override
+    public DrawShape clone(float scale) {
+        StrokePaint clonePaint = new StrokePaint(paint);
+        clonePaint.setScale(scale);
+
+        return new DrawPoint(x, y, clonePaint);
+    }
 }

@@ -25,4 +25,12 @@ public class DrawRect extends DrawShape {
     public void draw(Canvas canvas, Matrix matrix) {
         canvas.drawRect(rect, paint);
     }
+
+    @Override
+    public DrawShape clone(float scale) {
+        StrokePaint clonePaint = new StrokePaint(paint);
+        clonePaint.setScale(scale);
+
+        return new DrawRect(new Rect(rect), clonePaint);
+    }
 }
