@@ -80,13 +80,12 @@ public class PaintView extends View {
     //Gesture
     //手势
     private final static int SINGLE_FINGER = 1, DOUBLE_FINGER = 2;
-    private enum MODE {
+    protected enum GestureState {
         NONE, DRAG, ZOOM
     }
-    private MODE mode = MODE.NONE;
+    private GestureState mGestureState = GestureState.NONE;
 
     private boolean bGestureEnable = true;
-    private boolean bDragEnable = true;
     private float mScaleMax = 2f, mScaleMin = 0.5f;
 
     //Center Point of Two Fingers
@@ -150,7 +149,7 @@ public class PaintView extends View {
             mWidth = right - left;
             mHeight = bottom - top;
 
-            resizeBgBitmap();
+            resizeBitmap();
 
             bInited = true;
         }
@@ -330,6 +329,8 @@ public class PaintView extends View {
 
     /**
      * 获取绘制结果图
+     * @param isViewOnly true for just inside the view,
+     *                   false for whole bitmap in original scale and transition
      * @return paint result 绘制结果图
      */
     public Bitmap getBitmap(boolean isViewOnly) {
@@ -346,7 +347,7 @@ public class PaintView extends View {
 
             canvas.drawColor(mBgColor);
 
-            setImgPosition(matrix);
+            setBitmapPosition(matrix);
             if (mBgBitmap != null) {
                 canvas.drawBitmap(mBgBitmap, matrix, mBgPaint);
             }
@@ -368,19 +369,19 @@ public class PaintView extends View {
         mBgBitmap = bitmap;
     }
 
-    private void resizeBgBitmap() {
+    private void resizeBitmap() {
         if (mBgBitmap == null) {
             return;
         }
 
         if (mBgBitmap.getWidth() > mWidth || mBgBitmap.getHeight() > mHeight) {
-            mBgBitmap = zoomImg(mBgBitmap, mWidth, mHeight);
+            mBgBitmap = zoomBitmap(mBgBitmap, mWidth, mHeight);
         }
 
-        setImgPosition(mMainMatrix);
+        setBitmapPosition(mMainMatrix);
     }
 
-    private Bitmap zoomImg(Bitmap bm, int newWidth , int newHeight){
+    private Bitmap zoomBitmap(Bitmap bm, int newWidth , int newHeight){
         // 获得图片的宽高
         int width = bm.getWidth();
         int height = bm.getHeight();
@@ -397,7 +398,7 @@ public class PaintView extends View {
         return Bitmap.createBitmap(bm, 0, 0, width, height, matrix, true);
     }
 
-    private void setImgPosition(Matrix matrix) {
+    private void setBitmapPosition(Matrix matrix) {
         float left = (mWidth - mBgBitmap.getWidth()) / 2;
         float top = (mHeight - mBgBitmap.getHeight()) / 2;
         //缩放后
@@ -443,7 +444,7 @@ public class PaintView extends View {
         float x = event.getX();
         float y = event.getY();
 
-        mode = MODE.NONE;
+        mGestureState = GestureState.NONE;
         switch (event.getAction() & MotionEvent.ACTION_MASK) {
             //文字不在输入时，多点按下
             case MotionEvent.ACTION_POINTER_DOWN:
@@ -472,12 +473,14 @@ public class PaintView extends View {
                 break;
         }
 
-        switch (mode) {
+        switch (mGestureState) {
             case DRAG:
+//                setDragMode();
                 mMainMatrix.postTranslate(mCurrentDistanceX, mCurrentDistanceY);
                 mCurrentMatrix.setTranslate(mCurrentDistanceX, mCurrentDistanceY);
                 break;
             case ZOOM:
+//                setZoomMode();
                 mMainMatrix.postScale(mCurrentScale, mCurrentScale,
                         mCurrentCenterX, mCurrentCenterY);
                 mCurrentMatrix.setScale(mCurrentScale, mCurrentScale,
@@ -578,14 +581,14 @@ public class PaintView extends View {
         float curLength = getDistance(event);
 
         //拖动
-        if (bDragEnable && Math.abs(mCurrentLength - curLength) < 5) {
-            mode = MODE.DRAG;
+        if (Math.abs(mCurrentLength - curLength) < 5) {
+            mGestureState = GestureState.DRAG;
             mCurrentDistanceX = curCenterX - mCurrentCenterX;
             mCurrentDistanceY = curCenterY - mCurrentCenterY;
         }
         //放大 || 缩小
         else if (mCurrentLength < curLength || mCurrentLength > curLength){
-            mode = MODE.ZOOM;
+            mGestureState = GestureState.ZOOM;
             mCurrentScale = curLength / mCurrentLength;
 
             //放大缩小临界值判断
@@ -599,9 +602,6 @@ public class PaintView extends View {
         mCurrentCenterY = curCenterY;
 
         mCurrentLength = curLength;
-
-        //TODO
-//        bDragEnable = mMainMatrixValues[Matrix.MSCALE_X] > 1;
     }
 
     /**
@@ -615,4 +615,55 @@ public class PaintView extends View {
 
         return (float)Math.sqrt(x * x + y * y);
     }
+
+    private void setDragMode() {
+        mMainMatrix.getValues(mMainMatrixValues);
+
+        float imageLeft = mMainMatrixValues[Matrix.MTRANS_X];
+        float imageRight =
+                mMainMatrixValues[Matrix.MTRANS_X] + mBgBitmap.getWidth() * mMainMatrixValues[Matrix.MSCALE_X];
+        float imageTop = mMainMatrixValues[Matrix.MTRANS_Y];
+        float imageBtm =
+                mMainMatrixValues[Matrix.MTRANS_Y] + mBgBitmap.getHeight() * mMainMatrixValues[Matrix.MSCALE_Y];
+
+        if (imageLeft + mCurrentDistanceX >= 0 ||
+                imageRight + mCurrentDistanceX <= mWidth) {
+            mCurrentDistanceX = 0;
+        }
+
+        if (imageTop + mCurrentDistanceY >= 0 ||
+                imageBtm + mCurrentDistanceY <= mHeight) {
+            mCurrentDistanceY = 0;
+        }
+    }
+
+    private void setZoomMode() {
+        float imageLeft = mMainMatrixValues[Matrix.MTRANS_X];
+        float imageRight =
+                mMainMatrixValues[Matrix.MTRANS_X] + mBgBitmap.getWidth() * mMainMatrixValues[Matrix.MSCALE_X];
+        float imageTop = mMainMatrixValues[Matrix.MTRANS_Y];
+        float imageBtm =
+                mMainMatrixValues[Matrix.MTRANS_Y] + mBgBitmap.getHeight() * mMainMatrixValues[Matrix.MSCALE_Y];
+
+        if (imageLeft == 0) {
+            mCurrentCenterX = 0;
+        }
+        else if (imageRight == mWidth) {
+            mCurrentCenterX = mWidth;
+        }
+        else {
+            mCurrentCenterX = mWidth / 2;
+        }
+
+        if (imageTop >= 0) {
+            mCurrentCenterY = 0;
+        }
+        else if (imageBtm <= mHeight) {
+            mCurrentCenterY = mHeight;
+        }
+        else {
+            mCurrentCenterY = mHeight / 2;
+        }
+    }
+
 }
