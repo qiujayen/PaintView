@@ -7,6 +7,7 @@ import android.graphics.Color;
 import android.graphics.Matrix;
 import android.graphics.Paint;
 import android.graphics.Path;
+import android.graphics.Rect;
 import android.util.AttributeSet;
 import android.view.MotionEvent;
 import android.view.View;
@@ -29,7 +30,8 @@ public class PaintView extends View {
     private OnDrawListener mOnDrawListener;
 
     public interface OnDrawListener {
-        void afterDraw(ArrayList<DrawShape> drawShapes);
+        void afterPaintInit(int viewWidth, int viewHeight);
+        void afterEachPaint(ArrayList<DrawShape> drawShapes);
     }
 
     public void setOnDrawListener(OnDrawListener onDrawListener) {
@@ -152,6 +154,8 @@ public class PaintView extends View {
             resizeBitmap();
 
             bInited = true;
+
+            mOnDrawListener.afterPaintInit(mWidth, mHeight);
         }
     }
 
@@ -177,6 +181,56 @@ public class PaintView extends View {
         this.mDrawShapes = mDrawShapes;
     }
 
+    public enum TextGravity {
+        FREE, CENTER, CENTER_HORIZONTAL, CENTER_VERTICAL
+    }
+
+    /**
+     * 添加文字
+     * @param text
+     * @param x
+     * @param y
+     */
+    public void addText(String text, float x, float y, TextGravity gravity) {
+        Rect textRect = measureText(text);
+
+        DrawText drawText = new DrawText(getCurrentTextPaint());
+        drawText.setText(text);
+
+        switch (gravity) {
+            case FREE:
+                drawText.setCoordinate(x, y);
+                break;
+            case CENTER:
+                drawText.setCoordinate(
+                        (mWidth - textRect.width()) / 2,
+                        (mHeight + textRect.height()) / 2);
+                break;
+            case CENTER_HORIZONTAL:
+                drawText.setCoordinate(
+                        (mWidth - textRect.width()) / 2, y);
+                break;
+            case CENTER_VERTICAL:
+                drawText.setCoordinate(
+                        x, (mHeight + textRect.height()) / 2);
+                break;
+        }
+
+        mDrawShapes.add(drawText);
+        invalidate();
+    }
+
+    /**
+     * 测量文字
+     * @param text
+     * @return rect.width() for text width, rect.height() for text height
+     */
+    public Rect measureText(String text) {
+        Rect rect = new Rect();
+        getCurrentTextPaint().getTextBounds(text, 0, text.length(), rect);
+        return rect;
+    }
+
     /**
      * Text painting start
      * 开始绘制文字
@@ -189,7 +243,7 @@ public class PaintView extends View {
         //文字初始坐标位于view中心
         mCurrentText.setCoordinate(x, y);
 
-        mCurrentTextRect = new DrawRect(mCurrentText.getTextRect(), mTextRectPaint);
+        mCurrentTextRect = new DrawRect(mCurrentText.getTextBoundRect(), mTextRectPaint);
 
         mDrawShapes.add(mCurrentText);
         mDrawShapes.add(mCurrentTextRect);
@@ -211,7 +265,7 @@ public class PaintView extends View {
      */
     public void changeText(String text) {
         mCurrentText.setText(text);
-        mCurrentTextRect.setRect(mCurrentText.getTextRect());
+        mCurrentTextRect.setRect(mCurrentText.getTextBoundRect());
 
         invalidate();
     }
@@ -266,7 +320,7 @@ public class PaintView extends View {
         }
 
         if (mOnDrawListener != null) {
-            mOnDrawListener.afterDraw(mDrawShapes);
+            mOnDrawListener.afterEachPaint(mDrawShapes);
         }
 
         return mDrawShapes != null && mDrawShapes.size() > 0;
@@ -319,11 +373,11 @@ public class PaintView extends View {
     /**
      * Set text size
      * 设置文字大小
-     * @param width
+     * @param size
      */
-    public void setTextSize(int width) {
+    public void setTextSize(int size) {
         StrokePaint paint = new StrokePaint(getCurrentTextPaint());
-        paint.setStrokeWidth(width);
+        paint.setTextSize(size);
         mTextPaintList.add(paint);
     }
 
@@ -522,7 +576,7 @@ public class PaintView extends View {
             if (bTextDrawing) {
                 if (bTextDraging) {
                     mCurrentText.setCoordinate(mCurrentX, mCurrentY);
-                    mCurrentTextRect.setRect(mCurrentText.getTextRect());
+                    mCurrentTextRect.setRect(mCurrentText.getTextBoundRect());
                 }
             }
             else {
@@ -559,7 +613,7 @@ public class PaintView extends View {
         bPathDrawing = false;
 
         if (mOnDrawListener != null) {
-            mOnDrawListener.afterDraw(mDrawShapes);
+            mOnDrawListener.afterEachPaint(mDrawShapes);
         }
     }
 

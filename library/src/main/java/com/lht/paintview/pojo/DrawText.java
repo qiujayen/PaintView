@@ -41,7 +41,7 @@ public class DrawText extends DrawShape {
      * 获取文字边框矩形
      * @return
      */
-    public Rect getTextRect() {
+    public Rect getTextBoundRect() {
         paint.getTextBounds(text, 0, text.length(), rect);
         rect.set((int)(x - TEXT_RECT_PADDING * paint.getScale()),
                 (int)(y - paint.getActualTextSize() - TEXT_RECT_PADDING * paint.getScale()),
