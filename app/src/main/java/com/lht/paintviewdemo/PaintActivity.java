@@ -241,7 +241,14 @@ public class PaintActivity extends AppCompatActivity
     }
 
     @Override
-    public void afterDraw(ArrayList<DrawShape> drawShapes) {
+    public void afterPaintInit(int viewWidth, int viewHeight) {
+//        mPaintView.setTextColor(Color.BLACK);
+//        mPaintView.setTextSize(36);
+//        mPaintView.addText("标题", 100f, 100f, PaintView.TextGravity.CENTER);
+    }
+
+    @Override
+    public void afterEachPaint(ArrayList<DrawShape> drawShapes) {
         setUndoEnable(drawShapes);
     }
 
