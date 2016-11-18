@@ -194,28 +194,21 @@ public class PaintView extends View {
     public void addText(String text, float x, float y, TextGravity gravity) {
         Rect textRect = measureText(text);
 
-        DrawText drawText = new DrawText(getCurrentTextPaint());
-        drawText.setText(text);
-
         switch (gravity) {
-            case FREE:
-                drawText.setCoordinate(x, y);
-                break;
             case CENTER:
-                drawText.setCoordinate(
-                        (mWidth - textRect.width()) / 2,
-                        (mHeight + textRect.height()) / 2);
+                x = (mWidth - textRect.width()) / 2;
+                y = (mHeight + textRect.height()) / 2;
                 break;
             case CENTER_HORIZONTAL:
-                drawText.setCoordinate(
-                        (mWidth - textRect.width()) / 2, y);
+                x = (mWidth - textRect.width()) / 2;
                 break;
             case CENTER_VERTICAL:
-                drawText.setCoordinate(
-                        x, (mHeight + textRect.height()) / 2);
+                y = (mHeight + textRect.height()) / 2;
                 break;
         }
 
+        DrawText drawText = new DrawText(x, y, getCurrentTextPaint());
+        drawText.setText(text);
         mDrawShapes.add(drawText);
         invalidate();
     }
@@ -227,7 +220,9 @@ public class PaintView extends View {
      */
     public Rect measureText(String text) {
         Rect rect = new Rect();
-        getCurrentTextPaint().getTextBounds(text, 0, text.length(), rect);
+        Paint paint = new Paint(getCurrentPaint());
+        paint.setTextSize(getCurrentTextPaint().getActualTextSize());
+        paint.getTextBounds(text, 0, text.length(), rect);
         return rect;
     }
 

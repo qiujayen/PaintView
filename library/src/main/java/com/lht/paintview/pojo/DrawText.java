@@ -27,6 +27,12 @@ public class DrawText extends DrawShape {
         dy = paint.getActualTextSize() / 2;
     }
 
+    public DrawText(float x, float y, StrokePaint paint) {
+        this.paint = paint;
+        this.x = x;
+        this.y = y;
+    }
+
     public void setCoordinate(float x, float y) {
         this.x = x - dx;
         this.y = y + dy;

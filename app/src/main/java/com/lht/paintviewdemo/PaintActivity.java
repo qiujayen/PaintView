@@ -244,7 +244,7 @@ public class PaintActivity extends AppCompatActivity
     public void afterPaintInit(int viewWidth, int viewHeight) {
 //        mPaintView.setTextColor(Color.BLACK);
 //        mPaintView.setTextSize(36);
-//        mPaintView.addText("标题", 100f, 100f, PaintView.TextGravity.CENTER);
+//        mPaintView.addText("图表标题", -1, viewHeight - 50, PaintView.TextGravity.CENTER_HORIZONTAL);
     }
 
     @Override
