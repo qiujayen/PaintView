@@ -35,7 +35,7 @@ dependencies {
 def siteUrl = 'https://github.com/LiuHongtao/PaintView'
 def gitUrl = 'https://github.com/LiuHongtao/PaintView.git'
 group = "com.lht" // Maven Group ID for the artifact
-version = "1.1.5"
+version = "1.1.51"
 archivesBaseName='paintview' //和 artifactId 一起设置
 
 install {
