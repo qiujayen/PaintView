@@ -63,6 +63,7 @@ public class PaintView extends View {
     //Background Image
     //背景图
     private Bitmap mBgBitmap = null;
+    private int mBgPadding = 0;
     //Paint for Background
     //绘制背景图Paint
     private Paint mBgPaint;
@@ -389,14 +390,15 @@ public class PaintView extends View {
             result = getDrawingCache();
         }
         else {
-            result = Bitmap.createBitmap(mWidth, mHeight, Bitmap.Config.ARGB_8888);
+            result = Bitmap.createBitmap(mBgBitmap.getWidth(),
+                    mBgBitmap.getHeight(), Bitmap.Config.ARGB_8888);
             Matrix matrix = new Matrix();
             Canvas canvas = new Canvas();
             canvas.setBitmap(result);
 
             canvas.drawColor(mBgColor);
 
-            setBitmapPosition(matrix);
+            setBitmapPosition(mBgBitmap.getWidth(), mBgBitmap.getHeight(), matrix);
             if (mBgBitmap != null) {
                 canvas.drawBitmap(mBgBitmap, matrix, mBgPaint);
             }
@@ -414,6 +416,16 @@ public class PaintView extends View {
      * 设置背景图
      * @param bitmap
      */
+    public void setBitmap(Bitmap bitmap, int padding) {
+        mBgBitmap = bitmap;
+        mBgPadding = padding;
+    }
+
+    /**
+     * Set background image
+     * 设置背景图
+     * @param bitmap
+     */
     public void setBitmap(Bitmap bitmap) {
         mBgBitmap = bitmap;
     }
@@ -423,11 +435,14 @@ public class PaintView extends View {
             return;
         }
 
-        if (mBgBitmap.getWidth() > mWidth || mBgBitmap.getHeight() > mHeight) {
-            mBgBitmap = zoomBitmap(mBgBitmap, mWidth, mHeight);
+        if (mBgBitmap.getWidth() > mWidth - mBgPadding * 2 ||
+                mBgBitmap.getHeight() > mHeight - mBgPadding * 2) {
+            mBgBitmap = zoomBitmap(mBgBitmap,
+                    mWidth - mBgPadding * 2,
+                    mHeight - mBgPadding * 2);
         }
 
-        setBitmapPosition(mMainMatrix);
+        setBitmapPosition(mWidth, mHeight, mMainMatrix);
     }
 
     private Bitmap zoomBitmap(Bitmap bm, int newWidth , int newHeight){
@@ -447,17 +462,17 @@ public class PaintView extends View {
         return Bitmap.createBitmap(bm, 0, 0, width, height, matrix, true);
     }
 
-    private void setBitmapPosition(Matrix matrix) {
-        float left = (mWidth - mBgBitmap.getWidth()) / 2;
-        float top = (mHeight - mBgBitmap.getHeight()) / 2;
+    private void setBitmapPosition(int width, int height, Matrix matrix) {
+        float left = (width - mBgBitmap.getWidth()) / 2;
+        float top = (height - mBgBitmap.getHeight()) / 2;
         //缩放后
-        if (mBgBitmap.getWidth() < mWidth && mBgBitmap.getHeight() < mHeight) {
+        if (mBgBitmap.getWidth() < width && mBgBitmap.getHeight() < height) {
             matrix.setTranslate(left, top);
         }
-        else if (mBgBitmap.getWidth() < mWidth) {
+        else if (mBgBitmap.getWidth() < height) {
             matrix.setTranslate(left, 0);
         }
-        else if (mBgBitmap.getHeight() < mHeight) {
+        else if (mBgBitmap.getHeight() < height) {
             matrix.setTranslate(0, top);
         }
     }
