@@ -471,7 +471,7 @@ public class PaintView extends View {
         if (mBgBitmap.getWidth() < width && mBgBitmap.getHeight() < height) {
             matrix.setTranslate(left, top);
         }
-        else if (mBgBitmap.getWidth() < height) {
+        else if (mBgBitmap.getWidth() < width) {
             matrix.setTranslate(left, 0);
         }
         else if (mBgBitmap.getHeight() < height) {

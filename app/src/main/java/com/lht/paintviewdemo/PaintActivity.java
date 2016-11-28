@@ -21,7 +21,6 @@ import java.util.ArrayList;
 public class PaintActivity extends AppCompatActivity
         implements View.OnClickListener, PaintView.OnDrawListener {
 
-    final static String SCREEN_ORIENTATION = "screen_orientation";
     final static String BITMAP_URI = "bitmap_uri";
     final static String DRAW_SHAPES = "draw_shapes";
 
@@ -60,11 +59,11 @@ public class PaintActivity extends AppCompatActivity
         mBtnUndo.setOnClickListener(this);
     }
 
-    @Override
-    protected void onSaveInstanceState(Bundle outState) {
-        outState.putSerializable(DRAW_SHAPES, mPaintView.getDrawShapes());
-        super.onSaveInstanceState(outState);
-    }
+//    @Override
+//    protected void onSaveInstanceState(Bundle outState) {
+//        outState.putSerializable(DRAW_SHAPES, mPaintView.getDrawShapes());
+//        super.onSaveInstanceState(outState);
+//    }
 //
 //    @Override
 //    protected void onRestoreInstanceState(Bundle savedInstanceState) {
@@ -75,10 +74,9 @@ public class PaintActivity extends AppCompatActivity
 //        setUndoEnable(drawShapes);
 //    }
 
-    public static void start(Context context, Bitmap bitmap, int screenOrientation) {
+    public static void start(Context context, Bitmap bitmap) {
         Intent intent = new Intent();
         intent.setClass(context, PaintActivity.class);
-        intent.putExtra(SCREEN_ORIENTATION, screenOrientation);
         intent.putExtra(BITMAP_URI, ImageUtil.saveShareImage(context, bitmap));
         context.startActivity(intent);
     }
