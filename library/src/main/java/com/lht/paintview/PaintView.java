@@ -156,7 +156,9 @@ public class PaintView extends View {
 
             bInited = true;
 
-            mOnDrawListener.afterPaintInit(mWidth, mHeight);
+            if (mOnDrawListener != null) {
+                mOnDrawListener.afterPaintInit(mWidth, mHeight);
+            }
         }
     }
 

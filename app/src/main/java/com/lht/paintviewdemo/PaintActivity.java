@@ -2,32 +2,24 @@ package com.lht.paintviewdemo;
 
 import android.content.Context;
 import android.content.Intent;
-import android.content.pm.ActivityInfo;
-import android.content.res.Configuration;
 import android.graphics.Bitmap;
 import android.graphics.Color;
 import android.net.Uri;
 import android.os.Bundle;
-import android.support.annotation.Nullable;
 import android.support.v7.app.AppCompatActivity;
-import android.text.Editable;
-import android.text.TextWatcher;
-import android.view.KeyEvent;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
-import android.widget.EditText;
 import android.widget.ImageButton;
 
 import com.lht.paintview.PaintView;
 import com.lht.paintview.pojo.DrawShape;
 import com.lht.paintviewdemo.util.ImageUtil;
-import com.lht.paintviewdemo.util.KeyboardUtil;
 
 import java.util.ArrayList;
 
 public class PaintActivity extends AppCompatActivity
-        implements View.OnClickListener, TextWatcher, PaintView.OnDrawListener {
+        implements View.OnClickListener, PaintView.OnDrawListener {
 
     final static String SCREEN_ORIENTATION = "screen_orientation";
     final static String BITMAP_URI = "bitmap_uri";
@@ -38,25 +30,13 @@ public class PaintActivity extends AppCompatActivity
 
     PaintView mPaintView;
 
-    View mLayoutAction, mLayoutText;
-    ImageButton mBtnColor, mBtnStroke, mBtnText, mBtnUndo;
+    ImageButton mBtnColor, mBtnStroke, mBtnUndo;
     boolean bRedOrBlue = true, bWriteOrPaint = true;
-
-    EditText mEtText;
-    ImageButton mBtnSubmit;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_paint);
-
-        int screenOrientation = getIntent().getIntExtra(SCREEN_ORIENTATION, -1);
-        if (screenOrientation == Configuration.ORIENTATION_LANDSCAPE) {
-            setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
-        }
-        else if (screenOrientation == Configuration.ORIENTATION_PORTRAIT) {
-            setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
-        }
 
         mPaintView = (PaintView)findViewById(R.id.view_paint);
         mPaintView.setColor(COLOR_RED);
@@ -71,30 +51,20 @@ public class PaintActivity extends AppCompatActivity
             mPaintView.setBitmap(bitmap);
         }
 
-        mLayoutAction = findViewById(R.id.layout_action);
-
         mBtnColor = (ImageButton)findViewById(R.id.btn_color);
         mBtnColor.setOnClickListener(this);
         mBtnStroke = (ImageButton)findViewById(R.id.btn_stroke);
         mBtnStroke.setOnClickListener(this);
-        mBtnText = (ImageButton)findViewById(R.id.btn_text);
-        mBtnText.setOnClickListener(this);
         mBtnUndo = (ImageButton)findViewById(R.id.btn_undo);
         mBtnUndo.setEnabled(false);
         mBtnUndo.setOnClickListener(this);
-
-        mLayoutText = findViewById(R.id.layout_text);
-
-        mEtText = (EditText)findViewById(R.id.et_text);
-        mBtnSubmit = (ImageButton)findViewById(R.id.btn_submit);
-        mBtnSubmit.setOnClickListener(this);
     }
 
-//    @Override
-//    protected void onSaveInstanceState(Bundle outState) {
-//        outState.putSerializable(DRAW_SHAPES, mPaintView.getDrawShapes());
-//        super.onSaveInstanceState(outState);
-//    }
+    @Override
+    protected void onSaveInstanceState(Bundle outState) {
+        outState.putSerializable(DRAW_SHAPES, mPaintView.getDrawShapes());
+        super.onSaveInstanceState(outState);
+    }
 //
 //    @Override
 //    protected void onRestoreInstanceState(Bundle savedInstanceState) {
@@ -104,23 +74,6 @@ public class PaintActivity extends AppCompatActivity
 //        mPaintView.setDrawShapes(drawShapes);
 //        setUndoEnable(drawShapes);
 //    }
-
-    /**
-     * The afterTextChanged method was called, each time, the device orientation changed.
-     *
-     * Android recreates the activity,
-     * and the automatic restoration of the state of the input fields,
-     * is happening after onCreate had finished,
-     * where the TextWatcher was added as a TextChangedListener.
-     *
-     * The solution to the problem consisted in adding the TextWatcher in onPostCreate,
-     * which is called after restoration has taken place.
-     */
-    @Override
-    protected void onPostCreate(@Nullable Bundle savedInstanceState) {
-        super.onPostCreate(savedInstanceState);
-        mEtText.addTextChangedListener(this);
-    }
 
     public static void start(Context context, Bitmap bitmap, int screenOrientation) {
         Intent intent = new Intent();
@@ -139,52 +92,10 @@ public class PaintActivity extends AppCompatActivity
             case R.id.btn_stroke:
                 strokeChanged();
                 break;
-            case R.id.btn_text:
-                mPaintView.startText();
-                mEtText.setText("");
-                mEtText.requestFocus();
-                KeyboardUtil.showkeyboard(mEtText);
-                mLayoutText.setVisibility(View.VISIBLE);
-                mLayoutAction.setVisibility(View.GONE);
-                break;
             case R.id.btn_undo:
                 mPaintView.undo();
                 break;
-            case R.id.btn_submit:
-                endText();
-                break;
         }
-    }
-
-    @Override
-    public boolean onKeyDown(int keyCode, KeyEvent event) {
-        if (keyCode == KeyEvent.KEYCODE_BACK && mLayoutText.getVisibility() == View.VISIBLE) {
-            endText();
-            return true;
-        }
-        return super.onKeyDown(keyCode, event);
-    }
-
-    private void endText() {
-        mPaintView.endText();
-        KeyboardUtil.hidekeyboard(mEtText);
-        mLayoutAction.setVisibility(View.VISIBLE);
-        mLayoutText.setVisibility(View.GONE);
-    }
-
-    @Override
-    public void beforeTextChanged(CharSequence s, int start, int count, int after) {
-
-    }
-
-    @Override
-    public void onTextChanged(CharSequence s, int start, int before, int count) {
-
-    }
-
-    @Override
-    public void afterTextChanged(Editable s) {
-        mPaintView.changeText(s.toString());
     }
 
     private void colorChanged() {
