@@ -24,7 +24,6 @@ public class PaintActivity extends AppCompatActivity
     final static String BITMAP_URI = "bitmap_uri";
 
     final static int WIDTH_WRITE = 2, WIDTH_PAINT = 40;
-    final static int COLOR_RED = 0xffff4141, COLOR_BLUE = 0xff41c6ff;
 
     PaintView mPaintView;
 
@@ -37,9 +36,9 @@ public class PaintActivity extends AppCompatActivity
         setContentView(R.layout.activity_paint);
 
         mPaintView = (PaintView)findViewById(R.id.view_paint);
-        mPaintView.setColor(COLOR_RED);
-        mPaintView.setTextColor(COLOR_RED);
-        mPaintView.setBackgroundColor(Color.WHITE);
+        mPaintView.setColorFromRes(R.color.paint_color_red);
+        mPaintView.setTextColorFromRes(R.color.paint_color_red);
+        mPaintView.setBgColor(Color.WHITE);
         mPaintView.setStrokeWidth(WIDTH_WRITE);
         mPaintView.setOnDrawListener(this);
 
@@ -83,13 +82,13 @@ public class PaintActivity extends AppCompatActivity
     private void colorChanged() {
         bRedOrBlue = !bRedOrBlue;
         if (bRedOrBlue) {
-            mPaintView.setColor(COLOR_RED);
-            mPaintView.setTextColor(COLOR_RED);
+            mPaintView.setColorFromRes(R.color.paint_color_red);
+            mPaintView.setTextColorFromRes(R.color.paint_color_red);
             mBtnColor.setImageResource(R.drawable.ic_red);
         }
         else {
-            mPaintView.setColor(COLOR_BLUE);
-            mPaintView.setTextColor(COLOR_BLUE);
+            mPaintView.setColorFromRes(R.color.paint_color_blue);
+            mPaintView.setTextColorFromRes(R.color.paint_color_blue);
             mBtnColor.setImageResource(R.drawable.ic_blue);
         }
     }

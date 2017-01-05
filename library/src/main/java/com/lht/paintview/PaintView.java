@@ -8,6 +8,7 @@ import android.graphics.Matrix;
 import android.graphics.Paint;
 import android.graphics.Rect;
 import android.os.Parcelable;
+import android.support.annotation.ColorRes;
 import android.util.AttributeSet;
 import android.view.MotionEvent;
 import android.view.View;
@@ -302,12 +303,28 @@ public class PaintView extends View {
     }
 
     /**
+     * Set background color from resource
+     * @param res
+     */
+    public void setBgColorFromRes(@ColorRes int res) {
+        setBgColor(getContext().getResources().getColor(res));
+    }
+
+    /**
      * Set background color
      * 设置背景颜色
      * @param color 0xaarrggbb
      */
-    public void setBackgroundColor(int color) {
+    public void setBgColor(int color) {
         mBgColor = color;
+    }
+
+    /**
+     * Set paint color from resource
+     * @param res
+     */
+    public void setColorFromRes(@ColorRes int res) {
+        setColor(getContext().getResources().getColor(res));
     }
 
     /**
@@ -330,6 +347,14 @@ public class PaintView extends View {
         SerializablePaint paint = new SerializablePaint(getCurrentPaint());
         paint.setStrokeWidth(width);
         mPaintList.add(paint);
+    }
+
+    /**
+     * Set text color from resource
+     * @param res
+     */
+    public void setTextColorFromRes(@ColorRes int res) {
+        setTextColor(getContext().getResources().getColor(res));
     }
 
     /**
