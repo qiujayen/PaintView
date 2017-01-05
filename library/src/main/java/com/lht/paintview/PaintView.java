@@ -6,9 +6,10 @@ import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Matrix;
 import android.graphics.Paint;
-import android.graphics.Path;
 import android.graphics.Rect;
+import android.os.Parcelable;
 import android.util.AttributeSet;
+import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
 
@@ -17,7 +18,8 @@ import com.lht.paintview.pojo.DrawPoint;
 import com.lht.paintview.pojo.DrawRect;
 import com.lht.paintview.pojo.DrawShape;
 import com.lht.paintview.pojo.DrawText;
-import com.lht.paintview.pojo.StrokePaint;
+import com.lht.paintview.pojo.SerializablePaint;
+import com.lht.paintview.pojo.SerializablePath;
 
 import java.util.ArrayList;
 
@@ -48,17 +50,20 @@ public class PaintView extends View {
     private int mBgColor = Color.WHITE;
     //Paint List for Stroke
     //绘制笔迹Paint列表
-    private ArrayList<StrokePaint> mPaintList = new ArrayList<>();
+    private ArrayList<SerializablePaint> mPaintList = new ArrayList<>();
+
+    private int mLastDimensionW = -1;
+    private int mLastDimensionH = -1;
 
     // Paint for Text and Text Rectangle
     // 用于绘制文字和文字边框
-    private StrokePaint mTextRectPaint;
+    private SerializablePaint mTextRectPaint;
     private DrawText mCurrentText;
     private DrawRect mCurrentTextRect;
     private boolean bTextDrawing = false, bTextDraging = false;
     //Paint List for Stroke
     //绘制文字Paint列表
-    private ArrayList<StrokePaint> mTextPaintList = new ArrayList<>();
+    private ArrayList<SerializablePaint> mTextPaintList = new ArrayList<>();
 
     //Background Image
     //背景图
@@ -73,7 +78,7 @@ public class PaintView extends View {
     private float mCurrentX, mCurrentY;
     //Current Drawing Path
     //当前绘制路径
-    private Path mCurrentPath;
+    private SerializablePath mCurrentPath;
 
     //Shape List(Path, Point and Text)
     //绘制列表(线、点和文字）
@@ -128,7 +133,7 @@ public class PaintView extends View {
         mBgPaint.setAntiAlias(true);
         mBgPaint.setDither(true);
 
-        StrokePaint paint = new StrokePaint();
+        SerializablePaint paint = new SerializablePaint();
         paint.setAntiAlias(true);
         paint.setDither(true);
         paint.setStyle(Paint.Style.STROKE);
@@ -137,11 +142,11 @@ public class PaintView extends View {
 
         mPaintList.add(paint);
 
-        StrokePaint textPaint = new StrokePaint(paint);
+        SerializablePaint textPaint = new SerializablePaint(paint);
         textPaint.setStyle(Paint.Style.FILL);
         mTextPaintList.add(textPaint);
 
-        mTextRectPaint = new StrokePaint(paint);
+        mTextRectPaint = new SerializablePaint(paint);
     }
 
     @Override
@@ -163,6 +168,39 @@ public class PaintView extends View {
     }
 
     @Override
+    protected void onSizeChanged(int w, int h, int oldw, int oldh) {
+        super.onSizeChanged(w, h, oldw, oldh);
+
+        float xMultiplyFactor = 1;
+        float yMultiplyFactor = 1;
+
+
+        if (mLastDimensionW == -1) {
+            mLastDimensionW = w;
+        }
+
+        if (mLastDimensionH == -1) {
+            mLastDimensionH = h;
+        }
+
+        if (w >= 0 && w != oldw && w != mLastDimensionW) {
+            xMultiplyFactor = (float) w / mLastDimensionW;
+            mLastDimensionW = w;
+        }
+
+        if (h >= 0 && h != oldh && h != mLastDimensionH) {
+            yMultiplyFactor = (float) h / mLastDimensionH;
+            mLastDimensionH = h;
+        }
+
+//        multiplyPathsAndPoints(xMultiplyFactor, yMultiplyFactor);
+        Log.d("SIZECHANGED", "xMultiplyFactor:" + xMultiplyFactor);
+        Log.d("SIZECHANGED", "mLastDimensionW:" + mLastDimensionW);
+        Log.d("SIZECHANGED", "yMultiplyFactor:" + yMultiplyFactor);
+        Log.d("SIZECHANGED", "mLastDimensionH:" + mLastDimensionH);
+    }
+
+    @Override
     protected void onDraw(Canvas canvas) {
         super.onDraw(canvas);
         canvas.drawColor(mBgColor);
@@ -174,6 +212,32 @@ public class PaintView extends View {
         for (DrawShape shape : mDrawShapes) {
             shape.draw(canvas, mCurrentMatrix);
         }
+    }
+
+    @Override
+    protected Parcelable onSaveInstanceState() {
+        // Get the superclass parcelable state
+        Parcelable superState = super.onSaveInstanceState();
+
+        return new SavedState(superState, mDrawShapes, mLastDimensionW, mLastDimensionH);
+    }
+
+    @Override
+    protected void onRestoreInstanceState(Parcelable state) {
+        // If not instance of my state, let the superclass handle it
+        if (!(state instanceof SavedState)) {
+            super.onRestoreInstanceState(state);
+            return;
+        }
+
+        SavedState savedState = (SavedState) state;
+        // Superclass restore state
+        super.onRestoreInstanceState(savedState.getSuperState());
+
+        mDrawShapes = savedState.getDrawShapes();
+
+        mLastDimensionW = savedState.getLastDimensionW();
+        mLastDimensionH = savedState.getLastDimensionH();
     }
 
     public ArrayList<DrawShape> getDrawShapes() {
@@ -339,7 +403,7 @@ public class PaintView extends View {
      * @param color 0xaarrggbb
      */
     public void setColor(int color) {
-        StrokePaint paint = new StrokePaint(getCurrentPaint());
+        SerializablePaint paint = new SerializablePaint(getCurrentPaint());
         paint.setColor(color);
         mPaintList.add(paint);
     }
@@ -350,7 +414,7 @@ public class PaintView extends View {
      * @param width
      */
     public void setStrokeWidth(int width) {
-        StrokePaint paint = new StrokePaint(getCurrentPaint());
+        SerializablePaint paint = new SerializablePaint(getCurrentPaint());
         paint.setStrokeWidth(width);
         mPaintList.add(paint);
     }
@@ -361,7 +425,7 @@ public class PaintView extends View {
      * @param color 0xaarrggbb
      */
     public void setTextColor(int color) {
-        StrokePaint paint = new StrokePaint(getCurrentTextPaint());
+        SerializablePaint paint = new SerializablePaint(getCurrentTextPaint());
         paint.setColor(color);
         mTextPaintList.add(paint);
 
@@ -374,7 +438,7 @@ public class PaintView extends View {
      * @param size
      */
     public void setTextSize(int size) {
-        StrokePaint paint = new StrokePaint(getCurrentTextPaint());
+        SerializablePaint paint = new SerializablePaint(getCurrentTextPaint());
         paint.setTextSize(size);
         mTextPaintList.add(paint);
     }
@@ -482,14 +546,14 @@ public class PaintView extends View {
     /**
      * 获得当前笔迹
      */
-    private StrokePaint getCurrentPaint() {
+    private SerializablePaint getCurrentPaint() {
         return mPaintList.get(mPaintList.size() - 1);
     }
 
     /**
      * 获得当前文字笔迹
      */
-    private StrokePaint getCurrentTextPaint() {
+    private SerializablePaint getCurrentTextPaint() {
         return mTextPaintList.get(mTextPaintList.size() - 1);
     }
 
@@ -497,10 +561,10 @@ public class PaintView extends View {
      * 缩放所有笔迹
      */
     private void scaleStrokeWidth(float scale) {
-        for (StrokePaint paint: mPaintList) {
+        for (SerializablePaint paint: mPaintList) {
             paint.setScale(paint.getScale() * scale);
         }
-        for (StrokePaint paint: mTextPaintList) {
+        for (SerializablePaint paint: mTextPaintList) {
             paint.setScale(paint.getScale() * scale);
         }
     }
@@ -593,7 +657,7 @@ public class PaintView extends View {
             }
             else {
                 if (!bPathDrawing) {
-                    mCurrentPath = new Path();
+                    mCurrentPath = new SerializablePath();
                     mCurrentPath.moveTo(previousX, previousY);
                     mDrawShapes.add(
                             new DrawPath(mCurrentPath, getCurrentPaint()));

@@ -3,6 +3,7 @@ package com.lht.paintview.pojo;
 import android.graphics.Canvas;
 import android.graphics.Matrix;
 import android.graphics.Rect;
+import android.os.Parcel;
 
 /**
  * Created by lht on 16/11/10.
@@ -21,16 +22,20 @@ public class DrawText extends DrawShape {
     //点击文本框时的偏移量
     private float dx = 0, dy = 0;
 
-    public DrawText(StrokePaint paint) {
+    public DrawText(SerializablePaint paint) {
         this.paint = paint;
         dx = TEXT_RECT_PADDING * paint.getScale();
         dy = paint.getActualTextSize() / 2;
     }
 
-    public DrawText(float x, float y, StrokePaint paint) {
+    public DrawText(float x, float y, SerializablePaint paint) {
         this.paint = paint;
         this.x = x;
         this.y = y;
+    }
+
+    private DrawText(Parcel in) {
+        paint = (SerializablePaint)in.readSerializable();
     }
 
     public void setCoordinate(float x, float y) {
@@ -86,7 +91,7 @@ public class DrawText extends DrawShape {
 
     @Override
     public DrawShape clone(float scale) {
-        StrokePaint clonePaint = new StrokePaint(paint);
+        SerializablePaint clonePaint = new SerializablePaint(paint);
         clonePaint.setScale(scale);
 
         DrawText cloneText = new DrawText(clonePaint);
@@ -98,4 +103,27 @@ public class DrawText extends DrawShape {
 
         return cloneText;
     }
+
+    @Override
+    public int describeContents() {
+        return 0;
+    }
+
+    @Override
+    public void writeToParcel(Parcel dest, int flags) {
+
+    }
+
+    // Parcelable CREATOR class
+    public static final Creator<DrawText> CREATOR = new Creator<DrawText>() {
+        @Override
+        public DrawText createFromParcel(Parcel in) {
+            return new DrawText(in);
+        }
+
+        @Override
+        public DrawText[] newArray(int size) {
+            return new DrawText[size];
+        }
+    };
 }

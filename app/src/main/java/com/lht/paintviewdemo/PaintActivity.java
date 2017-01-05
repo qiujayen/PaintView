@@ -59,21 +59,6 @@ public class PaintActivity extends AppCompatActivity
         mBtnUndo.setOnClickListener(this);
     }
 
-//    @Override
-//    protected void onSaveInstanceState(Bundle outState) {
-//        outState.putSerializable(DRAW_SHAPES, mPaintView.getDrawShapes());
-//        super.onSaveInstanceState(outState);
-//    }
-//
-//    @Override
-//    protected void onRestoreInstanceState(Bundle savedInstanceState) {
-//        super.onRestoreInstanceState(savedInstanceState);
-//        ArrayList<DrawShape> drawShapes =
-//                (ArrayList<DrawShape>)savedInstanceState.getSerializable(DRAW_SHAPES);
-//        mPaintView.setDrawShapes(drawShapes);
-//        setUndoEnable(drawShapes);
-//    }
-
     public static void start(Context context, Bitmap bitmap) {
         Intent intent = new Intent();
         intent.setClass(context, PaintActivity.class);
