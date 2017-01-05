@@ -9,13 +9,11 @@ import android.graphics.Paint;
 import android.graphics.Rect;
 import android.os.Parcelable;
 import android.util.AttributeSet;
-import android.util.Log;
 import android.view.MotionEvent;
 import android.view.View;
 
 import com.lht.paintview.pojo.DrawPath;
 import com.lht.paintview.pojo.DrawPoint;
-import com.lht.paintview.pojo.DrawRect;
 import com.lht.paintview.pojo.DrawShape;
 import com.lht.paintview.pojo.DrawText;
 import com.lht.paintview.pojo.SerializablePaint;
@@ -55,12 +53,9 @@ public class PaintView extends View {
     private int mLastDimensionW = -1;
     private int mLastDimensionH = -1;
 
-    // Paint for Text and Text Rectangle
-    // 用于绘制文字和文字边框
+    // Paint for Text
+    // 用于绘制文字
     private SerializablePaint mTextRectPaint;
-    private DrawText mCurrentText;
-    private DrawRect mCurrentTextRect;
-    private boolean bTextDrawing = false, bTextDraging = false;
     //Paint List for Stroke
     //绘制文字Paint列表
     private ArrayList<SerializablePaint> mTextPaintList = new ArrayList<>();
@@ -168,39 +163,6 @@ public class PaintView extends View {
     }
 
     @Override
-    protected void onSizeChanged(int w, int h, int oldw, int oldh) {
-        super.onSizeChanged(w, h, oldw, oldh);
-
-        float xMultiplyFactor = 1;
-        float yMultiplyFactor = 1;
-
-
-        if (mLastDimensionW == -1) {
-            mLastDimensionW = w;
-        }
-
-        if (mLastDimensionH == -1) {
-            mLastDimensionH = h;
-        }
-
-        if (w >= 0 && w != oldw && w != mLastDimensionW) {
-            xMultiplyFactor = (float) w / mLastDimensionW;
-            mLastDimensionW = w;
-        }
-
-        if (h >= 0 && h != oldh && h != mLastDimensionH) {
-            yMultiplyFactor = (float) h / mLastDimensionH;
-            mLastDimensionH = h;
-        }
-
-//        multiplyPathsAndPoints(xMultiplyFactor, yMultiplyFactor);
-        Log.d("SIZECHANGED", "xMultiplyFactor:" + xMultiplyFactor);
-        Log.d("SIZECHANGED", "mLastDimensionW:" + mLastDimensionW);
-        Log.d("SIZECHANGED", "yMultiplyFactor:" + yMultiplyFactor);
-        Log.d("SIZECHANGED", "mLastDimensionH:" + mLastDimensionH);
-    }
-
-    @Override
     protected void onDraw(Canvas canvas) {
         super.onDraw(canvas);
         canvas.drawColor(mBgColor);
@@ -291,55 +253,6 @@ public class PaintView extends View {
         paint.setTextSize(getCurrentTextPaint().getActualTextSize());
         paint.getTextBounds(text, 0, text.length(), rect);
         return rect;
-    }
-
-    /**
-     * Text painting start
-     * 开始绘制文字
-     * @param x coordinate of bottom left corner
-     * @param y 左下角坐标
-     */
-    public void startText(float x, float y) {
-        bTextDrawing = true;
-        mCurrentText = new DrawText(getCurrentTextPaint());
-        //文字初始坐标位于view中心
-        mCurrentText.setCoordinate(x, y);
-
-        mCurrentTextRect = new DrawRect(mCurrentText.getTextBoundRect(), mTextRectPaint);
-
-        mDrawShapes.add(mCurrentText);
-        mDrawShapes.add(mCurrentTextRect);
-        invalidate();
-    }
-
-    /**
-     * Text painting start at screen center point
-     * 于屏幕重心开始绘制文字
-     */
-    public void startText() {
-        startText(mWidth / 2, mHeight / 2);
-    }
-
-    /**
-     * When text is inputting
-     * 文字输入中
-     * @param text
-     */
-    public void changeText(String text) {
-        mCurrentText.setText(text);
-        mCurrentTextRect.setRect(mCurrentText.getTextBoundRect());
-
-        invalidate();
-    }
-
-    /**
-     * Text painting finish
-     * 结束绘制文字
-     */
-    public void endText() {
-        bTextDrawing = false;
-        //删除文字边框
-        undo();
     }
 
     public boolean isGestureEnable() {
@@ -576,9 +489,9 @@ public class PaintView extends View {
 
         mGestureState = GestureState.NONE;
         switch (event.getAction() & MotionEvent.ACTION_MASK) {
-            //文字不在输入时，多点按下
+            //多点按下
             case MotionEvent.ACTION_POINTER_DOWN:
-                if (!bTextDrawing && bGestureEnable) {
+                if (bGestureEnable) {
                     doubleFingerDown(event);
                 }
                 break;
@@ -593,7 +506,7 @@ public class PaintView extends View {
                     touchMove(x, y);
                 }
                 //文字不在输入时，多点移动
-                else if (event.getPointerCount() == DOUBLE_FINGER && !bTextDrawing && bGestureEnable) {
+                else if (event.getPointerCount() == DOUBLE_FINGER && bGestureEnable) {
                     doubleFingerMove(event);
                 }
                 break;
@@ -631,10 +544,6 @@ public class PaintView extends View {
     private void touchDown(float x, float y) {
         mCurrentX = x;
         mCurrentY = y;
-
-        if (bTextDrawing) {
-            bTextDraging = mCurrentText.isInTextRect(mCurrentX, mCurrentY);
-        }
     }
 
     private void touchMove(float x, float y) {
@@ -649,41 +558,28 @@ public class PaintView extends View {
 
         //两点之间的距离大于等于3时，生成贝塞尔绘制曲线
         if (dx >= 3 || dy >= 3) {
-            if (bTextDrawing) {
-                if (bTextDraging) {
-                    mCurrentText.setCoordinate(mCurrentX, mCurrentY);
-                    mCurrentTextRect.setRect(mCurrentText.getTextBoundRect());
-                }
+            if (!bPathDrawing) {
+                mCurrentPath = new SerializablePath();
+                mCurrentPath.moveTo(previousX, previousY);
+                mDrawShapes.add(
+                        new DrawPath(mCurrentPath, getCurrentPaint()));
+                bPathDrawing = true;
             }
-            else {
-                if (!bPathDrawing) {
-                    mCurrentPath = new SerializablePath();
-                    mCurrentPath.moveTo(previousX, previousY);
-                    mDrawShapes.add(
-                            new DrawPath(mCurrentPath, getCurrentPaint()));
-                    bPathDrawing = true;
-                }
 
-                //设置贝塞尔曲线的操作点为起点和终点的一半
-                float cX = (mCurrentX + previousX) / 2;
-                float cY = (mCurrentY + previousY) / 2;
+            //设置贝塞尔曲线的操作点为起点和终点的一半
+            float cX = (mCurrentX + previousX) / 2;
+            float cY = (mCurrentY + previousY) / 2;
 
-                //二次贝塞尔，实现平滑曲线；previousX, previousY为操作点，cX, cY为终点
-                mCurrentPath.quadTo(previousX, previousY, cX, cY);
-            }
+            //二次贝塞尔，实现平滑曲线；previousX, previousY为操作点，cX, cY为终点
+            mCurrentPath.quadTo(previousX, previousY, cX, cY);
         }
     }
 
     private void touchUp(float x, float y) {
-        //不在输入文字和绘制笔迹，而是点击时
-        if (!bTextDrawing && !bPathDrawing && x == mCurrentX && y == mCurrentY) {
+        //不在绘制笔迹，而是点击时
+        if (!bPathDrawing && x == mCurrentX && y == mCurrentY) {
             mDrawShapes.add(
                     new DrawPoint(x, y, getCurrentPaint()));
-        }
-
-        //在输入文字时，变更文字坐标
-        if (bTextDrawing && bTextDraging) {
-            bTextDraging = false;
         }
 
         bPathDrawing = false;

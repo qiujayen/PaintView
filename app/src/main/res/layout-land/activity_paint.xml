@@ -32,13 +32,6 @@
             android:background="@drawable/selector_btn_bg"
             android:src="@drawable/ic_write"/>
         <ImageButton
-            android:id="@+id/btn_text"
-            android:layout_width="match_parent"
-            android:layout_height="0dp"
-            android:layout_weight="1"
-            android:background="@drawable/selector_btn_bg"
-            android:src="@drawable/ic_text"/>
-        <ImageButton
             android:id="@+id/btn_undo"
             android:layout_width="match_parent"
             android:layout_height="0dp"

@@ -22,7 +22,6 @@ public class PaintActivity extends AppCompatActivity
         implements View.OnClickListener, PaintView.OnDrawListener {
 
     final static String BITMAP_URI = "bitmap_uri";
-    final static String DRAW_SHAPES = "draw_shapes";
 
     final static int WIDTH_WRITE = 2, WIDTH_PAINT = 40;
     final static int COLOR_RED = 0xffff4141, COLOR_BLUE = 0xff41c6ff;
