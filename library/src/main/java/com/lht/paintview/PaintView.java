@@ -19,6 +19,7 @@ import com.lht.paintview.pojo.DrawShape;
 import com.lht.paintview.pojo.DrawText;
 import com.lht.paintview.pojo.SerializablePaint;
 import com.lht.paintview.pojo.SerializablePath;
+import com.lht.paintview.util.BitmapUtil;
 
 import java.util.ArrayList;
 
@@ -164,20 +165,6 @@ public class PaintView extends View {
     }
 
     @Override
-    protected void onDraw(Canvas canvas) {
-        super.onDraw(canvas);
-        canvas.drawColor(mBgColor);
-
-        if (mBgBitmap != null) {
-            canvas.drawBitmap(mBgBitmap, mMainMatrix, mBgPaint);
-        }
-
-        for (DrawShape shape : mDrawShapes) {
-            shape.draw(canvas, mCurrentMatrix);
-        }
-    }
-
-    @Override
     protected Parcelable onSaveInstanceState() {
         // Get the superclass parcelable state
         Parcelable superState = super.onSaveInstanceState();
@@ -201,14 +188,6 @@ public class PaintView extends View {
 
         mLastDimensionW = savedState.getLastDimensionW();
         mLastDimensionH = savedState.getLastDimensionH();
-    }
-
-    public ArrayList<DrawShape> getDrawShapes() {
-        return mDrawShapes;
-    }
-
-    public void setDrawShapes(ArrayList<DrawShape> mDrawShapes) {
-        this.mDrawShapes = mDrawShapes;
     }
 
     public enum TextGravity {
@@ -402,7 +381,8 @@ public class PaintView extends View {
 
             canvas.drawColor(mBgColor);
 
-            setBitmapPosition(mBgBitmap.getWidth(), mBgBitmap.getHeight(), matrix);
+            BitmapUtil.setBitmapPosition(mBgBitmap,
+                    mBgBitmap.getWidth(), mBgBitmap.getHeight(), matrix);
             if (mBgBitmap != null) {
                 canvas.drawBitmap(mBgBitmap, matrix, mBgPaint);
             }
@@ -439,46 +419,15 @@ public class PaintView extends View {
             return;
         }
 
+        //将图压缩到view尺寸内
         if (mBgBitmap.getWidth() > mWidth - mBgPadding * 2 ||
                 mBgBitmap.getHeight() > mHeight - mBgPadding * 2) {
-            mBgBitmap = zoomBitmap(mBgBitmap,
+            mBgBitmap = BitmapUtil.zoomBitmap(mBgBitmap,
                     mWidth - mBgPadding * 2,
                     mHeight - mBgPadding * 2);
         }
 
-        setBitmapPosition(mWidth, mHeight, mMainMatrix);
-    }
-
-    private Bitmap zoomBitmap(Bitmap bm, int newWidth , int newHeight){
-        // 获得图片的宽高
-        int width = bm.getWidth();
-        int height = bm.getHeight();
-        // 计算缩放比例
-        float scaleWidth = ((float) newWidth) / width;
-        float scaleHeight = ((float) newHeight) / height;
-
-        float scale = scaleWidth > scaleHeight ? scaleHeight : scaleWidth;
-
-        // 取得想要缩放的matrix参数
-        Matrix matrix = new Matrix();
-        matrix.postScale(scale, scale);
-        // 得到新的图片
-        return Bitmap.createBitmap(bm, 0, 0, width, height, matrix, true);
-    }
-
-    private void setBitmapPosition(int width, int height, Matrix matrix) {
-        float left = (width - mBgBitmap.getWidth()) / 2;
-        float top = (height - mBgBitmap.getHeight()) / 2;
-        //缩放后
-        if (mBgBitmap.getWidth() < width && mBgBitmap.getHeight() < height) {
-            matrix.setTranslate(left, top);
-        }
-        else if (mBgBitmap.getWidth() < width) {
-            matrix.setTranslate(left, 0);
-        }
-        else if (mBgBitmap.getHeight() < height) {
-            matrix.setTranslate(0, top);
-        }
+        BitmapUtil.setBitmapPosition(mBgBitmap, mWidth, mHeight, mMainMatrix);
     }
 
     /**
@@ -504,6 +453,20 @@ public class PaintView extends View {
         }
         for (SerializablePaint paint: mTextPaintList) {
             paint.setScale(paint.getScale() * scale);
+        }
+    }
+
+    @Override
+    protected void onDraw(Canvas canvas) {
+        super.onDraw(canvas);
+        canvas.drawColor(mBgColor);
+
+        if (mBgBitmap != null) {
+            canvas.drawBitmap(mBgBitmap, mMainMatrix, mBgPaint);
+        }
+
+        for (DrawShape shape : mDrawShapes) {
+            shape.draw(canvas, mCurrentMatrix);
         }
     }
 
