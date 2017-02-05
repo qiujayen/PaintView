@@ -1,6 +1,6 @@
 # PaintView
 
-[![Library Release](https://img.shields.io/badge/release-v1.1.52-green.svg)](https://github.com/LiuHongtao/PaintView)
+[![Library Release](https://img.shields.io/badge/release-v1.16-green.svg)](https://github.com/LiuHongtao/PaintView)
 [![MIT License](http://img.shields.io/:license-MIT-blue.svg)](https://github.com/LiuHongtao/PaintView/blob/master/LICENSE)
 [![Android API](https://img.shields.io/badge/Android_API-9%2B-brightgreen.svg?style=flat)](https://android-arsenal.com/api?level=9)
 
@@ -8,7 +8,7 @@ PaintView实现了在图片上涂鸦（也可以不在图片上），支持缩�
 
 点击下方ICON下载Demo。
 
-[![ICON](ic_launcher.png)](paintview_demo.apk)
+[![ICON](ic_launcher.png)](https://github.com/LiuHongtao/PaintView/raw/master/res/paintview_demo.apk)
 
 ## Gradle依赖
 
@@ -31,21 +31,11 @@ PaintView实现了在图片上涂鸦（也可以不在图片上），支持缩�
 
 ![screenshot](screenshot.png)
 
-### 1.1.5
+### 1.16
 
+* 清除所有笔迹
 * 通过代码添加文本
-
-### 1.1.4
-
 * 提供接口获取完整绘制结果或视图内绘制结果
-
-### 1.1.3
-
-* Bug修复
-
-### 1.1
-
-* 通过输入添加文本
 * 缩放和拖拽手势
 
 ### 1.0
@@ -57,6 +47,7 @@ PaintView实现了在图片上涂鸦（也可以不在图片上），支持缩�
 
 ## TODO
 
+* 更好的输入文字方案
 * 画布旋转
 * 手势边界限制
 * 注释和翻译
