@@ -46,7 +46,7 @@ public class MainActivity extends AppCompatActivity {
             }
         };
         mWebView.setWebChromeClient(WebChromeClient);
-        mWebView.loadUrl("http://www.baidu.com");
+        mWebView.loadUrl("http://www.google.com");
     }
 
     @Override
