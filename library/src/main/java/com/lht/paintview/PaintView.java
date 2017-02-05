@@ -282,6 +282,24 @@ public class PaintView extends View {
     }
 
     /**
+     * Clear All
+     * 清除所有笔迹
+     * @return is Undo still available 是否还能撤销
+     */
+    public boolean clear() {
+        if (mDrawShapes != null && mDrawShapes.size() > 0) {
+            mDrawShapes.clear();
+            invalidate();
+        }
+
+        if (mOnDrawListener != null) {
+            mOnDrawListener.afterEachPaint(mDrawShapes);
+        }
+
+        return mDrawShapes != null && mDrawShapes.size() > 0;
+    }
+
+    /**
      * Set background color from resource
      * @param res
      */
