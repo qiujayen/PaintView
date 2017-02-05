@@ -2,7 +2,7 @@ package com.lht.paintview.pojo;
 
 import android.graphics.Canvas;
 import android.graphics.Matrix;
-import android.graphics.Path;
+import android.os.Parcel;
 
 /**
  * Created by lht on 16/10/17.
@@ -10,11 +10,16 @@ import android.graphics.Path;
 
 public class DrawPath extends DrawShape {
 
-    private Path path;
+    private SerializablePath path;
 
-    public DrawPath(Path path, StrokePaint paint) {
+    public DrawPath(SerializablePath path, SerializablePaint paint) {
         this.path = path;
         this.paint = paint;
+    }
+
+    private DrawPath(Parcel in) {
+        paint = (SerializablePaint)in.readSerializable();
+        path = (SerializablePath)in.readSerializable();
     }
 
     @Override
@@ -27,9 +32,33 @@ public class DrawPath extends DrawShape {
 
     @Override
     public DrawShape clone(float scale) {
-        StrokePaint clonePaint = new StrokePaint(paint);
+        SerializablePaint clonePaint = new SerializablePaint(paint);
         clonePaint.setScale(scale);
 
-        return new DrawPath(new Path(path), clonePaint);
+        return new DrawPath(new SerializablePath(path), clonePaint);
     }
+
+    @Override
+    public int describeContents() {
+        return 0;
+    }
+
+    @Override
+    public void writeToParcel(Parcel dest, int flags) {
+        dest.writeSerializable(paint);
+        dest.writeSerializable(path);
+    }
+
+    // Parcelable CREATOR class
+    public static final Creator<DrawPath> CREATOR = new Creator<DrawPath>() {
+        @Override
+        public DrawPath createFromParcel(Parcel in) {
+            return new DrawPath(in);
+        }
+
+        @Override
+        public DrawPath[] newArray(int size) {
+            return new DrawPath[size];
+        }
+    };
 }

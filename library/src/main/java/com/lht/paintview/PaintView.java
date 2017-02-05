@@ -6,18 +6,20 @@ import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Matrix;
 import android.graphics.Paint;
-import android.graphics.Path;
 import android.graphics.Rect;
+import android.os.Parcelable;
+import android.support.annotation.ColorRes;
 import android.util.AttributeSet;
 import android.view.MotionEvent;
 import android.view.View;
 
 import com.lht.paintview.pojo.DrawPath;
 import com.lht.paintview.pojo.DrawPoint;
-import com.lht.paintview.pojo.DrawRect;
 import com.lht.paintview.pojo.DrawShape;
 import com.lht.paintview.pojo.DrawText;
-import com.lht.paintview.pojo.StrokePaint;
+import com.lht.paintview.pojo.SerializablePaint;
+import com.lht.paintview.pojo.SerializablePath;
+import com.lht.paintview.util.BitmapUtil;
 
 import java.util.ArrayList;
 
@@ -48,21 +50,22 @@ public class PaintView extends View {
     private int mBgColor = Color.WHITE;
     //Paint List for Stroke
     //绘制笔迹Paint列表
-    private ArrayList<StrokePaint> mPaintList = new ArrayList<>();
+    private ArrayList<SerializablePaint> mPaintList = new ArrayList<>();
 
-    // Paint for Text and Text Rectangle
-    // 用于绘制文字和文字边框
-    private StrokePaint mTextRectPaint;
-    private DrawText mCurrentText;
-    private DrawRect mCurrentTextRect;
-    private boolean bTextDrawing = false, bTextDraging = false;
+    private int mLastDimensionW = -1;
+    private int mLastDimensionH = -1;
+
+    // Paint for Text
+    // 用于绘制文字
+    private SerializablePaint mTextRectPaint;
     //Paint List for Stroke
     //绘制文字Paint列表
-    private ArrayList<StrokePaint> mTextPaintList = new ArrayList<>();
+    private ArrayList<SerializablePaint> mTextPaintList = new ArrayList<>();
 
     //Background Image
     //背景图
     private Bitmap mBgBitmap = null;
+    private int mBgPadding = 0;
     //Paint for Background
     //绘制背景图Paint
     private Paint mBgPaint;
@@ -72,7 +75,7 @@ public class PaintView extends View {
     private float mCurrentX, mCurrentY;
     //Current Drawing Path
     //当前绘制路径
-    private Path mCurrentPath;
+    private SerializablePath mCurrentPath;
 
     //Shape List(Path, Point and Text)
     //绘制列表(线、点和文字）
@@ -127,7 +130,7 @@ public class PaintView extends View {
         mBgPaint.setAntiAlias(true);
         mBgPaint.setDither(true);
 
-        StrokePaint paint = new StrokePaint();
+        SerializablePaint paint = new SerializablePaint();
         paint.setAntiAlias(true);
         paint.setDither(true);
         paint.setStyle(Paint.Style.STROKE);
@@ -136,11 +139,11 @@ public class PaintView extends View {
 
         mPaintList.add(paint);
 
-        StrokePaint textPaint = new StrokePaint(paint);
+        SerializablePaint textPaint = new SerializablePaint(paint);
         textPaint.setStyle(Paint.Style.FILL);
         mTextPaintList.add(textPaint);
 
-        mTextRectPaint = new StrokePaint(paint);
+        mTextRectPaint = new SerializablePaint(paint);
     }
 
     @Override
@@ -155,30 +158,36 @@ public class PaintView extends View {
 
             bInited = true;
 
-            mOnDrawListener.afterPaintInit(mWidth, mHeight);
+            if (mOnDrawListener != null) {
+                mOnDrawListener.afterPaintInit(mWidth, mHeight);
+            }
         }
     }
 
     @Override
-    protected void onDraw(Canvas canvas) {
-        super.onDraw(canvas);
-        canvas.drawColor(mBgColor);
+    protected Parcelable onSaveInstanceState() {
+        // Get the superclass parcelable state
+        Parcelable superState = super.onSaveInstanceState();
 
-        if (mBgBitmap != null) {
-            canvas.drawBitmap(mBgBitmap, mMainMatrix, mBgPaint);
-        }
-
-        for (DrawShape shape : mDrawShapes) {
-            shape.draw(canvas, mCurrentMatrix);
-        }
+        return new SavedState(superState, mDrawShapes, mLastDimensionW, mLastDimensionH);
     }
 
-    public ArrayList<DrawShape> getDrawShapes() {
-        return mDrawShapes;
-    }
+    @Override
+    protected void onRestoreInstanceState(Parcelable state) {
+        // If not instance of my state, let the superclass handle it
+        if (!(state instanceof SavedState)) {
+            super.onRestoreInstanceState(state);
+            return;
+        }
 
-    public void setDrawShapes(ArrayList<DrawShape> mDrawShapes) {
-        this.mDrawShapes = mDrawShapes;
+        SavedState savedState = (SavedState) state;
+        // Superclass restore state
+        super.onRestoreInstanceState(savedState.getSuperState());
+
+        mDrawShapes = savedState.getDrawShapes();
+
+        mLastDimensionW = savedState.getLastDimensionW();
+        mLastDimensionH = savedState.getLastDimensionH();
     }
 
     public enum TextGravity {
@@ -224,55 +233,6 @@ public class PaintView extends View {
         paint.setTextSize(getCurrentTextPaint().getActualTextSize());
         paint.getTextBounds(text, 0, text.length(), rect);
         return rect;
-    }
-
-    /**
-     * Text painting start
-     * 开始绘制文字
-     * @param x coordinate of bottom left corner
-     * @param y 左下角坐标
-     */
-    public void startText(float x, float y) {
-        bTextDrawing = true;
-        mCurrentText = new DrawText(getCurrentTextPaint());
-        //文字初始坐标位于view中心
-        mCurrentText.setCoordinate(x, y);
-
-        mCurrentTextRect = new DrawRect(mCurrentText.getTextBoundRect(), mTextRectPaint);
-
-        mDrawShapes.add(mCurrentText);
-        mDrawShapes.add(mCurrentTextRect);
-        invalidate();
-    }
-
-    /**
-     * Text painting start at screen center point
-     * 于屏幕重心开始绘制文字
-     */
-    public void startText() {
-        startText(mWidth / 2, mHeight / 2);
-    }
-
-    /**
-     * When text is inputting
-     * 文字输入中
-     * @param text
-     */
-    public void changeText(String text) {
-        mCurrentText.setText(text);
-        mCurrentTextRect.setRect(mCurrentText.getTextBoundRect());
-
-        invalidate();
-    }
-
-    /**
-     * Text painting finish
-     * 结束绘制文字
-     */
-    public void endText() {
-        bTextDrawing = false;
-        //删除文字边框
-        undo();
     }
 
     public boolean isGestureEnable() {
@@ -322,12 +282,46 @@ public class PaintView extends View {
     }
 
     /**
+     * Clear All
+     * 清除所有笔迹
+     * @return is Undo still available 是否还能撤销
+     */
+    public boolean clear() {
+        if (mDrawShapes != null && mDrawShapes.size() > 0) {
+            mDrawShapes.clear();
+            invalidate();
+        }
+
+        if (mOnDrawListener != null) {
+            mOnDrawListener.afterEachPaint(mDrawShapes);
+        }
+
+        return mDrawShapes != null && mDrawShapes.size() > 0;
+    }
+
+    /**
+     * Set background color from resource
+     * @param res
+     */
+    public void setBgColorFromRes(@ColorRes int res) {
+        setBgColor(getContext().getResources().getColor(res));
+    }
+
+    /**
      * Set background color
      * 设置背景颜色
      * @param color 0xaarrggbb
      */
-    public void setBackgroundColor(int color) {
+    public void setBgColor(int color) {
         mBgColor = color;
+    }
+
+    /**
+     * Set paint color from resource
+     * @param res
+     */
+    public void setColorFromRes(@ColorRes int res) {
+        setColor(getContext().getResources().getColor(res));
     }
 
     /**
@@ -336,7 +330,7 @@ public class PaintView extends View {
      * @param color 0xaarrggbb
      */
     public void setColor(int color) {
-        StrokePaint paint = new StrokePaint(getCurrentPaint());
+        SerializablePaint paint = new SerializablePaint(getCurrentPaint());
         paint.setColor(color);
         mPaintList.add(paint);
     }
@@ -347,9 +341,17 @@ public class PaintView extends View {
      * @param width
      */
     public void setStrokeWidth(int width) {
-        StrokePaint paint = new StrokePaint(getCurrentPaint());
+        SerializablePaint paint = new SerializablePaint(getCurrentPaint());
         paint.setStrokeWidth(width);
         mPaintList.add(paint);
+    }
+
+    /**
+     * Set text color from resource
+     * @param res
+     */
+    public void setTextColorFromRes(@ColorRes int res) {
+        setTextColor(getContext().getResources().getColor(res));
     }
 
     /**
@@ -358,7 +360,7 @@ public class PaintView extends View {
      * @param color 0xaarrggbb
      */
     public void setTextColor(int color) {
-        StrokePaint paint = new StrokePaint(getCurrentTextPaint());
+        SerializablePaint paint = new SerializablePaint(getCurrentTextPaint());
         paint.setColor(color);
         mTextPaintList.add(paint);
 
@@ -371,7 +373,7 @@ public class PaintView extends View {
      * @param size
      */
     public void setTextSize(int size) {
-        StrokePaint paint = new StrokePaint(getCurrentTextPaint());
+        SerializablePaint paint = new SerializablePaint(getCurrentTextPaint());
         paint.setTextSize(size);
         mTextPaintList.add(paint);
     }
@@ -389,14 +391,16 @@ public class PaintView extends View {
             result = getDrawingCache();
         }
         else {
-            result = Bitmap.createBitmap(mWidth, mHeight, Bitmap.Config.ARGB_8888);
+            result = Bitmap.createBitmap(mBgBitmap.getWidth(),
+                    mBgBitmap.getHeight(), Bitmap.Config.ARGB_8888);
             Matrix matrix = new Matrix();
             Canvas canvas = new Canvas();
             canvas.setBitmap(result);
 
             canvas.drawColor(mBgColor);
 
-            setBitmapPosition(matrix);
+            BitmapUtil.setBitmapPosition(mBgBitmap,
+                    mBgBitmap.getWidth(), mBgBitmap.getHeight(), matrix);
             if (mBgBitmap != null) {
                 canvas.drawBitmap(mBgBitmap, matrix, mBgPaint);
             }
@@ -414,6 +418,16 @@ public class PaintView extends View {
      * 设置背景图
      * @param bitmap
      */
+    public void setBitmap(Bitmap bitmap, int padding) {
+        mBgBitmap = bitmap;
+        mBgPadding = padding;
+    }
+
+    /**
+     * Set background image
+     * 设置背景图
+     * @param bitmap
+     */
     public void setBitmap(Bitmap bitmap) {
         mBgBitmap = bitmap;
     }
@@ -423,56 +437,28 @@ public class PaintView extends View {
             return;
         }
 
-        if (mBgBitmap.getWidth() > mWidth || mBgBitmap.getHeight() > mHeight) {
-            mBgBitmap = zoomBitmap(mBgBitmap, mWidth, mHeight);
+        //将图压缩到view尺寸内
+        if (mBgBitmap.getWidth() > mWidth - mBgPadding * 2 ||
+                mBgBitmap.getHeight() > mHeight - mBgPadding * 2) {
+            mBgBitmap = BitmapUtil.zoomBitmap(mBgBitmap,
+                    mWidth - mBgPadding * 2,
+                    mHeight - mBgPadding * 2);
         }
 
-        setBitmapPosition(mMainMatrix);
-    }
-
-    private Bitmap zoomBitmap(Bitmap bm, int newWidth , int newHeight){
-        // 获得图片的宽高
-        int width = bm.getWidth();
-        int height = bm.getHeight();
-        // 计算缩放比例
-        float scaleWidth = ((float) newWidth) / width;
-        float scaleHeight = ((float) newHeight) / height;
-
-        float scale = scaleWidth > scaleHeight ? scaleHeight : scaleWidth;
-
-        // 取得想要缩放的matrix参数
-        Matrix matrix = new Matrix();
-        matrix.postScale(scale, scale);
-        // 得到新的图片
-        return Bitmap.createBitmap(bm, 0, 0, width, height, matrix, true);
-    }
-
-    private void setBitmapPosition(Matrix matrix) {
-        float left = (mWidth - mBgBitmap.getWidth()) / 2;
-        float top = (mHeight - mBgBitmap.getHeight()) / 2;
-        //缩放后
-        if (mBgBitmap.getWidth() < mWidth && mBgBitmap.getHeight() < mHeight) {
-            matrix.setTranslate(left, top);
-        }
-        else if (mBgBitmap.getWidth() < mWidth) {
-            matrix.setTranslate(left, 0);
-        }
-        else if (mBgBitmap.getHeight() < mHeight) {
-            matrix.setTranslate(0, top);
-        }
+        BitmapUtil.setBitmapPosition(mBgBitmap, mWidth, mHeight, mMainMatrix);
     }
 
     /**
      * 获得当前笔迹
      */
-    private StrokePaint getCurrentPaint() {
+    private SerializablePaint getCurrentPaint() {
         return mPaintList.get(mPaintList.size() - 1);
     }
 
     /**
      * 获得当前文字笔迹
      */
-    private StrokePaint getCurrentTextPaint() {
+    private SerializablePaint getCurrentTextPaint() {
         return mTextPaintList.get(mTextPaintList.size() - 1);
     }
 
@@ -480,11 +466,25 @@ public class PaintView extends View {
      * 缩放所有笔迹
      */
     private void scaleStrokeWidth(float scale) {
-        for (StrokePaint paint: mPaintList) {
+        for (SerializablePaint paint: mPaintList) {
             paint.setScale(paint.getScale() * scale);
         }
-        for (StrokePaint paint: mTextPaintList) {
+        for (SerializablePaint paint: mTextPaintList) {
             paint.setScale(paint.getScale() * scale);
+        }
+    }
+
+    @Override
+    protected void onDraw(Canvas canvas) {
+        super.onDraw(canvas);
+        canvas.drawColor(mBgColor);
+
+        if (mBgBitmap != null) {
+            canvas.drawBitmap(mBgBitmap, mMainMatrix, mBgPaint);
+        }
+
+        for (DrawShape shape : mDrawShapes) {
+            shape.draw(canvas, mCurrentMatrix);
         }
     }
 
@@ -495,9 +495,9 @@ public class PaintView extends View {
 
         mGestureState = GestureState.NONE;
         switch (event.getAction() & MotionEvent.ACTION_MASK) {
-            //文字不在输入时，多点按下
+            //多点按下
             case MotionEvent.ACTION_POINTER_DOWN:
-                if (!bTextDrawing && bGestureEnable) {
+                if (bGestureEnable) {
                     doubleFingerDown(event);
                 }
                 break;
@@ -512,7 +512,7 @@ public class PaintView extends View {
                     touchMove(x, y);
                 }
                 //文字不在输入时，多点移动
-                else if (event.getPointerCount() == DOUBLE_FINGER && !bTextDrawing && bGestureEnable) {
+                else if (event.getPointerCount() == DOUBLE_FINGER && bGestureEnable) {
                     doubleFingerMove(event);
                 }
                 break;
@@ -550,10 +550,6 @@ public class PaintView extends View {
     private void touchDown(float x, float y) {
         mCurrentX = x;
         mCurrentY = y;
-
-        if (bTextDrawing) {
-            bTextDraging = mCurrentText.isInTextRect(mCurrentX, mCurrentY);
-        }
     }
 
     private void touchMove(float x, float y) {
@@ -568,41 +564,28 @@ public class PaintView extends View {
 
         //两点之间的距离大于等于3时，生成贝塞尔绘制曲线
         if (dx >= 3 || dy >= 3) {
-            if (bTextDrawing) {
-                if (bTextDraging) {
-                    mCurrentText.setCoordinate(mCurrentX, mCurrentY);
-                    mCurrentTextRect.setRect(mCurrentText.getTextBoundRect());
-                }
+            if (!bPathDrawing) {
+                mCurrentPath = new SerializablePath();
+                mCurrentPath.moveTo(previousX, previousY);
+                mDrawShapes.add(
+                        new DrawPath(mCurrentPath, getCurrentPaint()));
+                bPathDrawing = true;
             }
-            else {
-                if (!bPathDrawing) {
-                    mCurrentPath = new Path();
-                    mCurrentPath.moveTo(previousX, previousY);
-                    mDrawShapes.add(
-                            new DrawPath(mCurrentPath, getCurrentPaint()));
-                    bPathDrawing = true;
-                }
 
-                //设置贝塞尔曲线的操作点为起点和终点的一半
-                float cX = (mCurrentX + previousX) / 2;
-                float cY = (mCurrentY + previousY) / 2;
+            //设置贝塞尔曲线的操作点为起点和终点的一半
+            float cX = (mCurrentX + previousX) / 2;
+            float cY = (mCurrentY + previousY) / 2;
 
-                //二次贝塞尔，实现平滑曲线；previousX, previousY为操作点，cX, cY为终点
-                mCurrentPath.quadTo(previousX, previousY, cX, cY);
-            }
+            //二次贝塞尔，实现平滑曲线；previousX, previousY为操作点，cX, cY为终点
+            mCurrentPath.quadTo(previousX, previousY, cX, cY);
         }
     }
 
     private void touchUp(float x, float y) {
-        //不在输入文字和绘制笔迹，而是点击时
-        if (!bTextDrawing && !bPathDrawing && x == mCurrentX && y == mCurrentY) {
+        //不在绘制笔迹，而是点击时
+        if (!bPathDrawing && x == mCurrentX && y == mCurrentY) {
             mDrawShapes.add(
                     new DrawPoint(x, y, getCurrentPaint()));
-        }
-
-        //在输入文字时，变更文字坐标
-        if (bTextDrawing && bTextDraging) {
-            bTextDraging = false;
         }
 
         bPathDrawing = false;

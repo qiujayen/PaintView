@@ -8,7 +8,7 @@ import java.io.Serializable;
  * Created by lht on 16/11/10.
  */
 
-public class StrokePaint extends Paint implements Serializable {
+public class SerializablePaint extends Paint implements Serializable {
 
     //scale
     //缩放
@@ -20,11 +20,11 @@ public class StrokePaint extends Paint implements Serializable {
     //文字大小
     private float mTextSize = 28;
 
-    public StrokePaint() {
+    public SerializablePaint() {
         super();
     }
 
-    public StrokePaint(StrokePaint paint) {
+    public SerializablePaint(SerializablePaint paint) {
         super(paint);
         mScale = paint.getScale();
         mStrokeWidth = paint.getStrokeWidth();
@@ -73,7 +73,7 @@ public class StrokePaint extends Paint implements Serializable {
         return mTextSize * mScale;
     }
 
-    public StrokePaint setStrokeWidth() {
+    public SerializablePaint setStrokeWidth() {
         super.setStrokeWidth(getActualStrokeWidth());
         super.setTextSize(getActualTextSize());
 

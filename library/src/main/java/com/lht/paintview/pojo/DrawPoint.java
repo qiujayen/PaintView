@@ -2,6 +2,7 @@ package com.lht.paintview.pojo;
 
 import android.graphics.Canvas;
 import android.graphics.Matrix;
+import android.os.Parcel;
 
 /**
  * Created by lht on 16/10/17.
@@ -12,10 +13,16 @@ public class DrawPoint extends DrawShape {
     private float x, y;
     private float[] matrixValues = new float[9];
 
-    public DrawPoint(float x, float y, StrokePaint paint) {
+    public DrawPoint(float x, float y, SerializablePaint paint) {
         this.x = x;
         this.y = y;
         this.paint = paint;
+    }
+
+    private DrawPoint(Parcel in) {
+        paint = (SerializablePaint)in.readSerializable();
+        x = in.readFloat();
+        y = in.readFloat();
     }
 
     @Override
@@ -30,9 +37,34 @@ public class DrawPoint extends DrawShape {
 
     @Override
     public DrawShape clone(float scale) {
-        StrokePaint clonePaint = new StrokePaint(paint);
+        SerializablePaint clonePaint = new SerializablePaint(paint);
         clonePaint.setScale(scale);
 
         return new DrawPoint(x, y, clonePaint);
     }
+
+    @Override
+    public int describeContents() {
+        return 0;
+    }
+
+    @Override
+    public void writeToParcel(Parcel dest, int flags) {
+        dest.writeSerializable(paint);
+        dest.writeFloat(x);
+        dest.writeFloat(y);
+    }
+
+    // Parcelable CREATOR class
+    public static final Creator<DrawPoint> CREATOR = new Creator<DrawPoint>() {
+        @Override
+        public DrawPoint createFromParcel(Parcel in) {
+            return new DrawPoint(in);
+        }
+
+        @Override
+        public DrawPoint[] newArray(int size) {
+            return new DrawPoint[size];
+        }
+    };
 }
