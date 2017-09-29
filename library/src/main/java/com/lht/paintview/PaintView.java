@@ -20,8 +20,19 @@ import com.lht.paintview.pojo.DrawText;
 import com.lht.paintview.pojo.SerializablePaint;
 import com.lht.paintview.pojo.SerializablePath;
 import com.lht.paintview.util.BitmapUtil;
+import com.lht.paintview.util.Constant;
+import com.lht.paintview.util.LogUtil;
+import com.lht.paintview.util.PaintUtil;
 
 import java.util.ArrayList;
+
+import static android.R.attr.gravity;
+import static android.R.attr.x;
+import static com.lht.paintview.util.Constant.GestureState;
+import static com.lht.paintview.util.Constant.TextGravity;
+import static com.lht.paintview.util.Constant.GestureFingers;
+import static com.lht.paintview.util.PaintUtil.getDistance;
+import static com.lht.paintview.util.PaintUtil.measureText;
 
 /**
  * Created by lht on 16/10/17.
@@ -55,8 +66,8 @@ public class PaintView extends View {
     private int mLastDimensionW = -1;
     private int mLastDimensionH = -1;
 
-    // Paint for Text
-    // 用于绘制文字
+    //Paint for Text
+    //用于绘制文字
     private SerializablePaint mTextRectPaint;
     //Paint List for Stroke
     //绘制文字Paint列表
@@ -69,6 +80,8 @@ public class PaintView extends View {
     //Paint for Background
     //绘制背景图Paint
     private Paint mBgPaint;
+
+    private boolean bPaintEnable = true;
 
     //Current Coordinate
     //当前坐标
@@ -84,13 +97,10 @@ public class PaintView extends View {
 
     //Gesture
     //手势
-    private final static int SINGLE_FINGER = 1, DOUBLE_FINGER = 2;
-    protected enum GestureState {
-        NONE, DRAG, ZOOM
-    }
-    private GestureState mGestureState = GestureState.NONE;
+    private int mGestureState = Constant.GestureState.NONE;
 
     private boolean bGestureEnable = true;
+    private boolean bGestureMoving = false;
     private float mScaleMax = 2f, mScaleMin = 0.5f;
 
     //Center Point of Two Fingers
@@ -190,8 +200,17 @@ public class PaintView extends View {
         mLastDimensionH = savedState.getLastDimensionH();
     }
 
-    public enum TextGravity {
-        FREE, CENTER, CENTER_HORIZONTAL, CENTER_VERTICAL
+    /**
+     * 添加文字
+     * @param text
+     * @param x
+     * @param y
+     */
+    public void addText(String text, float x, float y) {
+        DrawText drawText = new DrawText(x, y, getCurrentTextPaint());
+        drawText.setText(text);
+        mDrawShapes.add(drawText);
+        invalidate();
     }
 
     /**
@@ -199,19 +218,20 @@ public class PaintView extends View {
      * @param text
      * @param x
      * @param y
+     * @param gravity
      */
-    public void addText(String text, float x, float y, TextGravity gravity) {
-        Rect textRect = measureText(text);
+    public void addText(String text, float x, float y, int gravity) {
+        Rect textRect = measureText(getCurrentTextPaint(), text);
 
         switch (gravity) {
-            case CENTER:
+            case TextGravity.CENTER:
                 x = (mWidth - textRect.width()) / 2;
                 y = (mHeight + textRect.height()) / 2;
                 break;
-            case CENTER_HORIZONTAL:
+            case TextGravity.CENTER_HORIZONTAL:
                 x = (mWidth - textRect.width()) / 2;
                 break;
-            case CENTER_VERTICAL:
+            case TextGravity.CENTER_VERTICAL:
                 y = (mHeight + textRect.height()) / 2;
                 break;
         }
@@ -222,17 +242,12 @@ public class PaintView extends View {
         invalidate();
     }
 
-    /**
-     * 测量文字
-     * @param text
-     * @return rect.width() for text width, rect.height() for text height
-     */
-    public Rect measureText(String text) {
-        Rect rect = new Rect();
-        Paint paint = new Paint(getCurrentPaint());
-        paint.setTextSize(getCurrentTextPaint().getActualTextSize());
-        paint.getTextBounds(text, 0, text.length(), rect);
-        return rect;
+    public boolean isPaintEnable() {
+        return bPaintEnable;
+    }
+
+    public void setPaintEnable(boolean paintEnable) {
+        this.bPaintEnable = paintEnable;
     }
 
     public boolean isGestureEnable() {
@@ -488,47 +503,60 @@ public class PaintView extends View {
         }
     }
 
+    private void paint(DrawShape drawShape) {
+        if (!bPaintEnable) return;
+
+        mDrawShapes.add(drawShape);
+    }
+
     @Override
     public boolean onTouchEvent(MotionEvent event) {
         float x = event.getX();
         float y = event.getY();
 
-        mGestureState = GestureState.NONE;
+        mGestureState = Constant.GestureState.NONE;
         switch (event.getAction() & MotionEvent.ACTION_MASK) {
             //多点按下
             case MotionEvent.ACTION_POINTER_DOWN:
+                LogUtil.d("ACTION_DOUBLE_DOWN");
                 if (bGestureEnable) {
                     doubleFingerDown(event);
                 }
                 break;
             //单点按下
             case MotionEvent.ACTION_DOWN:
+                LogUtil.d("ACTION_SINGLE_DOWN");
                 touchDown(x, y);
                 break;
             //移动
             case MotionEvent.ACTION_MOVE:
                 //文字不在输入时，单点移动
-                if (event.getPointerCount() == SINGLE_FINGER) {
+                if (event.getPointerCount() == GestureFingers.SINGLE && !bGestureMoving) {
+                    LogUtil.d("ACTION_SINGLE_MOVE");
                     touchMove(x, y);
                 }
                 //文字不在输入时，多点移动
-                else if (event.getPointerCount() == DOUBLE_FINGER && bGestureEnable) {
+                else if (event.getPointerCount() == GestureFingers.DOUBLE && bGestureEnable) {
+                    LogUtil.d("ACTION_DOUBLE_MOVE");
+                    bGestureMoving = true;
                     doubleFingerMove(event);
                 }
                 break;
-            //单点抬起
+            //抬起
             case MotionEvent.ACTION_UP:
+                LogUtil.d("ACTION_UP");
+                bGestureMoving = false;
                 touchUp(x, y);
                 break;
         }
 
         switch (mGestureState) {
-            case DRAG:
+            case GestureState.DRAG:
 //                setDragMode();
                 mMainMatrix.postTranslate(mCurrentDistanceX, mCurrentDistanceY);
                 mCurrentMatrix.setTranslate(mCurrentDistanceX, mCurrentDistanceY);
                 break;
-            case ZOOM:
+            case GestureState.ZOOM:
 //                setZoomMode();
                 mMainMatrix.postScale(mCurrentScale, mCurrentScale,
                         mCurrentCenterX, mCurrentCenterY);
@@ -536,7 +564,7 @@ public class PaintView extends View {
                         mCurrentCenterX, mCurrentCenterY);
                 scaleStrokeWidth(mCurrentScale);
                 break;
-            case NONE:
+            case GestureState.NONE:
                 mCurrentMatrix.reset();
                 break;
         }
@@ -567,8 +595,7 @@ public class PaintView extends View {
             if (!bPathDrawing) {
                 mCurrentPath = new SerializablePath();
                 mCurrentPath.moveTo(previousX, previousY);
-                mDrawShapes.add(
-                        new DrawPath(mCurrentPath, getCurrentPaint()));
+                paint(new DrawPath(mCurrentPath, getCurrentPaint()));
                 bPathDrawing = true;
             }
 
@@ -584,8 +611,7 @@ public class PaintView extends View {
     private void touchUp(float x, float y) {
         //不在绘制笔迹，而是点击时
         if (!bPathDrawing && x == mCurrentX && y == mCurrentY) {
-            mDrawShapes.add(
-                    new DrawPoint(x, y, getCurrentPaint()));
+            paint(new DrawPoint(x, y, getCurrentPaint()));
         }
 
         bPathDrawing = false;
@@ -634,18 +660,6 @@ public class PaintView extends View {
         mCurrentCenterY = curCenterY;
 
         mCurrentLength = curLength;
-    }
-
-    /**
-     * 获取两个触控点之间的距离
-     * @param event
-     * @return 两个触控点之间的距离
-     */
-    private float getDistance(MotionEvent event) {
-        float x = event.getX(0) - event.getX(1);
-        float y = event.getY(0) - event.getY(1);
-
-        return (float)Math.sqrt(x * x + y * y);
     }
 
     private void setDragMode() {

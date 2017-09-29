@@ -5,7 +5,6 @@ import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
-import android.support.v7.app.AppCompatActivity;
 import android.view.KeyEvent;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -16,7 +15,7 @@ import android.widget.ProgressBar;
 
 import com.lht.paintviewdemo.view.CustomWebView;
 
-public class MainActivity extends AppCompatActivity {
+public class MainActivity extends AbstractActivity {
 
     final static int WRITE_EXTERNAL_STORAGE_REQUEST_CODE = 0;
 
