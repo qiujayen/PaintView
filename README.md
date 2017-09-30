@@ -2,7 +2,7 @@
 
 [中文README](res/README_CN.md)
 
-[![Library Release](https://img.shields.io/badge/release-v1.16-green.svg)](https://github.com/LiuHongtao/PaintView)
+[![Library Release](https://img.shields.io/badge/release-v1.17-green.svg)](https://github.com/LiuHongtao/PaintView)
 [![MIT License](http://img.shields.io/:license-MIT-blue.svg)](https://github.com/LiuHongtao/PaintView/blob/master/LICENSE)
 [![Android API](https://img.shields.io/badge/Android_API-9%2B-brightgreen.svg?style=flat)](https://android-arsenal.com/api?level=9)
 
@@ -34,14 +34,10 @@ Then, add the library to your module build.gradle:
 
 ![screenshot](res/screenshot.png)
 
-### 1.16
-
+* Clear All
 * Adding Text by Code
 * API for whole bitmap in original scale and transition, or just content in the view
 * Zooming and Draging
-
-### 1.0
-
 * Background Image Setting
 * Setting Color and Width of Stroke
 * Undo

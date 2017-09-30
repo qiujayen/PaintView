@@ -1,14 +1,14 @@
 apply plugin: 'com.android.application'
 
 android {
-    compileSdkVersion 24
-    buildToolsVersion "24.0.2"
+    compileSdkVersion "$COMPILE_SDK_VERSION".toInteger()
+    buildToolsVersion "$BUILD_TOOL_VERSION"
     defaultConfig {
         applicationId "com.lht.paintviewdemo"
-        minSdkVersion 9
-        targetSdkVersion 24
+        minSdkVersion "$MIN_SDK_VERSION".toInteger()
+        targetSdkVersion "$COMPILE_SDK_VERSION".toInteger()
         versionCode 1
-        versionName "1.0"
+        versionName "$APP_VERSION"
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
     }
     buildTypes {
@@ -24,8 +24,8 @@ dependencies {
     androidTestCompile('com.android.support.test.espresso:espresso-core:2.2.2', {
         exclude group: 'com.android.support', module: 'support-annotations'
     })
-    compile 'com.android.support:appcompat-v7:24.2.1'
+    compile "com.android.support:appcompat-v7:$SUPPORT_APPCOMPAT_VERSION"
     testCompile 'junit:junit:4.12'
     compile project(':library')
-    compile 'com.readystatesoftware.systembartint:systembartint:1.0.3'
+    compile "com.readystatesoftware.systembartint:systembartint:$SYSTEMBARTINT_VERSION"
 }
