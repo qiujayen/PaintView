@@ -1,6 +1,6 @@
 # PaintView
 
-[![Library Release](https://img.shields.io/badge/release-v1.16-green.svg)](https://github.com/LiuHongtao/PaintView)
+[![Library Release](https://img.shields.io/badge/release-v1.17-green.svg)](https://github.com/LiuHongtao/PaintView)
 [![MIT License](http://img.shields.io/:license-MIT-blue.svg)](https://github.com/LiuHongtao/PaintView/blob/master/LICENSE)
 [![Android API](https://img.shields.io/badge/Android_API-9%2B-brightgreen.svg?style=flat)](https://android-arsenal.com/api?level=9)
 
@@ -31,15 +31,10 @@ PaintView实现了在图片上涂鸦（也可以不在图片上），支持缩�
 
 ![screenshot](screenshot.png)
 
-### 1.16
-
 * 清除所有笔迹
 * 通过代码添加文本
 * 提供接口获取完整绘制结果或视图内绘制结果
 * 缩放和拖拽手势
-
-### 1.0
-
 * 背景图设置
 * 设置笔迹的颜色和宽度
 * 撤销

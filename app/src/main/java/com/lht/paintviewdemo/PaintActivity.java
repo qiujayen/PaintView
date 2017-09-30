@@ -18,7 +18,7 @@ import com.lht.paintviewdemo.util.ImageUtil;
 
 import java.util.ArrayList;
 
-public class PaintActivity extends AppCompatActivity
+public class PaintActivity extends AbstractActivity
         implements View.OnClickListener, PaintView.OnDrawListener {
 
     final static String BITMAP_URI = "bitmap_uri";
