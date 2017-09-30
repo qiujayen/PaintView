@@ -1,0 +1,4 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="activity_bg_for_status_bar">@color/transparent</color>
+</resources>
