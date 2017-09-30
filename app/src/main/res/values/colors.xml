@@ -10,4 +10,6 @@
     <color name="paint_color_red">#ff4141</color>
 
     <color name="transparent">#00000000</color>
+
+    <color name="activity_bg_for_status_bar">@color/colorPrimary</color>
 </resources>
