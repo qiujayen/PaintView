@@ -572,7 +572,7 @@ public class PaintView extends View {
         mMainMatrix.getValues(mMainMatrixValues);
 
         invalidate();
-        return true;
+        return bPaintEnable;
     }
 
     private void touchDown(float x, float y) {
