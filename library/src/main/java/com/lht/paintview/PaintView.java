@@ -41,6 +41,7 @@ import static com.lht.paintview.util.PaintUtil.measureText;
 public class PaintView extends View {
 
     private OnDrawListener mOnDrawListener;
+    private boolean isHavePath;
 
     public interface OnDrawListener {
         void afterPaintInit(int viewWidth, int viewHeight);
@@ -136,6 +137,7 @@ public class PaintView extends View {
     }
 
     private void initPaint() {
+        isHavePath = false;
         mBgPaint = new Paint();
         mBgPaint.setAntiAlias(true);
         mBgPaint.setDither(true);
@@ -292,8 +294,11 @@ public class PaintView extends View {
         if (mOnDrawListener != null) {
             mOnDrawListener.afterEachPaint(mDrawShapes);
         }
-
-        return mDrawShapes != null && mDrawShapes.size() > 0;
+        boolean isUndo = mDrawShapes != null && mDrawShapes.size() > 0;
+        if (!isUndo) {
+            isHavePath = false;
+        }
+        return isUndo;
     }
 
     /**
@@ -310,7 +315,7 @@ public class PaintView extends View {
         if (mOnDrawListener != null) {
             mOnDrawListener.afterEachPaint(mDrawShapes);
         }
-
+        isHavePath = false;
         return mDrawShapes != null && mDrawShapes.size() > 0;
     }
 
@@ -605,7 +610,13 @@ public class PaintView extends View {
 
             //二次贝塞尔，实现平滑曲线；previousX, previousY为操作点，cX, cY为终点
             mCurrentPath.quadTo(previousX, previousY, cX, cY);
+
+            isHavePath = true;
         }
+    }
+
+    public boolean isHavePath() {
+        return isHavePath;
     }
 
     private void touchUp(float x, float y) {

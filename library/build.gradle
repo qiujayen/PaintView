@@ -1,6 +1,7 @@
 apply plugin: 'com.android.library'
-apply plugin: 'com.github.dcendents.android-maven'
-apply plugin: 'com.jfrog.bintray'
+apply plugin: 'com.github.dcendents.android-maven' // ADD THIS
+
+group='com.github.qiujayen'
 
 android {
     compileSdkVersion "$COMPILE_SDK_VERSION".toInteger()
@@ -23,51 +24,12 @@ android {
 }
 
 dependencies {
-    compile fileTree(dir: 'libs', include: ['*.jar'])
-    androidTestCompile('com.android.support.test.espresso:espresso-core:2.2.2', {
+    implementation fileTree(dir: 'libs', include: ['*.jar'])
+    androidTestImplementation('com.android.support.test.espresso:espresso-core:2.2.2', {
         exclude group: 'com.android.support', module: 'support-annotations'
     })
-    compile "com.android.support:appcompat-v7:$SUPPORT_APPCOMPAT_VERSION"
-    testCompile 'junit:junit:4.12'
-}
-
-
-def siteUrl = 'https://github.com/LiuHongtao/PaintView'
-def gitUrl = 'https://github.com/LiuHongtao/PaintView.git'
-group = "com.lht" // Maven Group ID for the artifact
-version = "$APP_VERSION"
-archivesBaseName='paintview' //和 artifactId 一起设置
-
-install {
-    repositories.mavenInstaller {
-        // This generates POM.xml with proper parameters
-        pom.artifactId = 'paintview'
-        pom.project {
-            packaging 'aar'
-            // Add your description here
-            name 'An Android View with Gesture Supported for Painting' //项目描述
-            url siteUrl
-            // Set your license
-            licenses {
-                license {
-                    name 'MIT'
-                    url 'http://www.opensource.org/licenses/mit-license.php'
-                }
-            }
-            developers {
-                developer {
-                    id 'liuhongtao'    //填写的一些基本信息
-                    name 'liuhongtao'
-                    email 'lht91225@gmail.com'
-                }
-            }
-            scm {
-                connection gitUrl
-                developerConnection gitUrl
-                url siteUrl
-            }
-        }
-    }
+    implementation "com.android.support:appcompat-v7:$SUPPORT_APPCOMPAT_VERSION"
+    testImplementation 'junit:junit:4.12'
 }
 
 task sourcesJar(type: Jar) {
@@ -76,37 +38,19 @@ task sourcesJar(type: Jar) {
 }
 
 task javadoc(type: Javadoc) {
-    source = android.sourceSets.main.java.srcDirs
+    failOnError  false
+    source = android.sourceSets.main.java.sourceFiles
     classpath += project.files(android.getBootClasspath().join(File.pathSeparator))
+    classpath += configurations.compile
 }
 
+// build a jar with javadoc
 task javadocJar(type: Jar, dependsOn: javadoc) {
     classifier = 'javadoc'
     from javadoc.destinationDir
 }
 
-tasks.withType(JavaCompile) {
-    options.encoding = "UTF-8"
-}
-
 artifacts {
-    archives javadocJar
     archives sourcesJar
-}
-
-Properties properties = new Properties()
-properties.load(project.rootProject.file('local.properties').newDataInputStream())
-bintray {
-    user = properties.getProperty("bintray.user")
-    key = properties.getProperty("bintray.apikey")
-    configurations = ['archives']
-    pkg {
-        userOrg = "lht"
-        repo = "maven"
-        name = "paintview"    //发布到JCenter上的项目名字
-        websiteUrl = siteUrl
-        vcsUrl = gitUrl
-        licenses = ["MIT"]
-        publish = true
-    }
+    archives javadocJar
 }
